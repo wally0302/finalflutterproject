@@ -349,16 +349,38 @@ class _EventPageState extends State<EventPage> {
         //result[0]==false -> 沒有媒合成功 ，有多個選項，所以需要更改起始時間&結束時間，將他更改成<<需要前往投票>>
         // print(result[0]);
 
+        //server回傳的資料
         http.Response response = result[1];
         String responseBody = response.body;
         var decoded = json.decode(responseBody);
-        var eventFinalStartTime = decoded['eventFinalStartTime'];
-        var eventFinalEndTime = decoded['eventFinalEndTime'];
+        //  decoded['eventFinalStartTime'] : 202109201800
+        //要轉換成 DateTime:2023-11-29 20:00:00.000
+        //才能存進去 event.eventFinalStartTime
+        int eventFinalStartTimeInt = decoded['eventFinalStartTime'];
+        var eventFinalStartTime = DateTime(
+            eventFinalStartTimeInt ~/ 100000000, // 年
+            (eventFinalStartTimeInt % 100000000) ~/ 1000000, // 月
+            (eventFinalStartTimeInt % 1000000) ~/ 10000, // 日
+            (eventFinalStartTimeInt % 10000) ~/ 100, // 小时
+            eventFinalStartTimeInt % 100 // 分钟
+            );
+
+        int eventFinalEndTimeInt = decoded['eventFinalEndTime'];
+        var eventFinalEndTime = DateTime(
+            eventFinalEndTimeInt ~/ 100000000, // 年
+            (eventFinalEndTimeInt % 100000000) ~/ 1000000, // 月
+            (eventFinalEndTimeInt % 1000000) ~/ 10000, // 日
+            (eventFinalEndTimeInt % 10000) ~/ 100, // 小时
+            eventFinalEndTimeInt % 100 // 分钟
+            );
+        try {
+          event.eventFinalStartTime = eventFinalStartTime;
+          event.eventFinalEndTime = eventFinalEndTime;
+        } catch (e) {
+          print('Error updating event times: $e');
+        }
 
         setState(() {
-          //更新 eventFinalStartTime & eventFinalEndTime
-          event.eventFinalStartTime = DateTime.parse(eventFinalStartTime);
-          event.eventFinalEndTime = DateTime.parse(eventFinalEndTime);
           yesMatchTime.add(event);
           notMatchTime.remove(event);
           Eventlist.remove(event);

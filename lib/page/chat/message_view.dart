@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 
 import '../../model/chat.dart';
+import '../login_page.dart';
 import 'message_detail_page.dart';
 
 // typedef MessageDataCallback = void Function(Map<String, dynamic> data);
@@ -39,7 +40,7 @@ class _MessageViewState extends State<MessageView> {
       returnMessage = widget.chat.returnMessage ?? 'false';
       print('初始化rM$returnMessage');
     });
-    userMallLocal = 'qqq';
+    userMallLocal = FirebaseEmail!;
   }
 
   @override

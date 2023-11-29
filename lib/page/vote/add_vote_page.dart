@@ -1,4 +1,5 @@
 import 'package:create_event2/page/login_page.dart';
+import 'package:create_event2/page/vote/vote_page.dart';
 import 'package:create_event2/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -387,7 +388,7 @@ class _AddVotePageState extends State<AddVotePage> {
           VoteResult voteResult = VoteResult(
             voteResultID: 1,
             vID: newVID,
-            userMall: '1112', // 這裡要改根據使用者的userMall
+            userMall: FirebaseEmail!,
             oID: allOptionResult[1][i]["oID"],
             status: false, // 預設為0
           );
@@ -396,12 +397,16 @@ class _AddVotePageState extends State<AddVotePage> {
               await APIservice.addVoteResult(content: voteResult.toMap());
         }
 
-        // 将整体的选项添加到Provider中
         Provider.of<VoteProvider>(context, listen: false)
             .addVoteOptions(voteOption);
-        // 将整体的投票添加到Provider中
+
         Provider.of<VoteProvider>(context, listen: false).addVote(vote);
-        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VotePage(key: UniqueKey()),
+          ),
+        );
       }
     }
   }

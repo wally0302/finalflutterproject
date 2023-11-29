@@ -27,7 +27,7 @@ class VotePage extends StatefulWidget {
 }
 
 class _VotePageState extends State<VotePage> {
-  TextEditingController questionController = TextEditingController();
+  // TextEditingController questionController = TextEditingController();
   late DateTime endTime;
   bool isChecked = false;
 
@@ -43,17 +43,17 @@ class _VotePageState extends State<VotePage> {
 
   // 抓投票資料表的資料
   getallVote() async {
-    print('widget.event.eID');
-    print(widget.event!.eID!); // 這裡要抓聊天室ID
-    String voteName = questionController.text;
-    Vote vote = Vote(
-      vID: 1,
-      eID: widget.event!.eID!,
-      userMall: FirebaseEmail, // 這裡要根據使用者的userMall
-      voteName: voteName,
-      endTime: endTime,
-      singleOrMultipleChoice: isChecked,
-    );
+    // print('widget.event.eID');
+    // print(widget.event!.eID!); // 這裡要抓聊天室ID
+    // String voteName = questionController.text;
+    // Vote vote = Vote(
+    //   vID: 1,
+    //   eID: widget.event!.eID!,
+    //   userMall: FirebaseEmail, // 這裡要根據使用者的userMall
+    //   voteName: voteName,
+    //   endTime: endTime,
+    //   singleOrMultipleChoice: isChecked,
+    // );
 
     final result =
         await APIservice.seletallVote(eID: widget.event!.eID!); // 這裡要抓聊天室ID
@@ -80,7 +80,6 @@ class _VotePageState extends State<VotePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        // 构建一个警告对话框
         return AlertDialog(
           title: Text('確認刪除此投票？'),
           actions: <Widget>[
@@ -95,6 +94,10 @@ class _VotePageState extends State<VotePage> {
                 print(result[0]);
                 if (result[0]) {
                   print('在server刪除投票成功');
+                  //_votes:是存放投票的list，當我們刪除投票時，也要同時刪除這個list中的投票，並且透過setState及時更新畫面
+                  setState(() {
+                    _votes.removeAt(index);
+                  });
                 } else {
                   print('在server刪除投票失敗');
                 }
@@ -128,7 +131,7 @@ class _VotePageState extends State<VotePage> {
         centerTitle: true,
         backgroundColor: Color(0xFF4A7DAB),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context); // 返回上一页面
           },
