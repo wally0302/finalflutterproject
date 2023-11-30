@@ -52,7 +52,7 @@ class _AddVotePageState extends State<AddVotePage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.of(context).pop(); // 返回上一个页面
+            Navigator.of(context).pop();
           },
         ),
       ),
@@ -401,12 +401,7 @@ class _AddVotePageState extends State<AddVotePage> {
             .addVoteOptions(voteOption);
 
         Provider.of<VoteProvider>(context, listen: false).addVote(vote);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VotePage(key: UniqueKey()),
-          ),
-        );
+        Navigator.of(context).pop(true);
       }
     }
   }

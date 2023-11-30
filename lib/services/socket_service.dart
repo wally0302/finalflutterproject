@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 import 'dart:async';
+import 'dart:math';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:flutter/material.dart';
 
@@ -29,9 +30,9 @@ class SocketService {
   }
 
 // 傳訊息給server
-  static void sendMessage(String message, Chat? replyMessage) {
+  static void sendMessage(String eID, String message, Chat? replyMessage) {
     _socket.emit('message', {
-      "chatID": 1, //接收server 'eID': eid
+      "chatID": eID, //接收server 'eID': eid
       "userMall": _userName,
       "messageContent": message,
       "messageSendTime": DateTime.now().toString(),
@@ -50,7 +51,7 @@ class SocketService {
   //   _socket.emit('getChatMessages', {"chatID": 1});
   // }
 
-  static void connectAndListen() {
+  static void connectAndListen(String eID) {
     //把這
     _socketResponse = StreamController<Chat>();
     _userResponse = StreamController<List<String>>();
@@ -63,8 +64,8 @@ class SocketService {
             .disableAutoConnect()
             .setQuery({
               'userName': _userName,
-              'chatRoomId': 1,
-              'eID': 1
+              'chatRoomId': eID,
+              'eID': eID,
             }) //這個uid接收server  'eID': eid
             .build());
 

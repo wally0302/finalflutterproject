@@ -234,7 +234,7 @@ class _EventPageState extends State<EventPage> {
             } else if (action == 'chat') {
               SocketService.setUserName(FirebaseEmail!);
               SocketService.setChatRoomId(event.eID.toString()); // 設定聊天室 ID
-              SocketService.connectAndListen();
+              SocketService.connectAndListen(event.eID.toString());
               Navigator.push(
                 context,
                 MaterialPageRoute(
