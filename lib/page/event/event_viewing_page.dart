@@ -102,7 +102,7 @@ class EventViewingPage extends StatelessWidget {
         leading: CloseButton(
           color: Colors.black,
           onPressed: () {
-            Navigator.pop(context, event); // 关闭此页面 返回上一页
+            Navigator.pop(context, event);
           },
         ),
         actions: buildViewingActions(context, event), //编辑和删除按钮
@@ -407,7 +407,6 @@ class EventViewingPage extends StatelessWidget {
                 builder: (context) => EventEditingPage(
                   event: event,
                   addTodayDate: true,
-                  time: event.eventBlockStartTime,
                 ),
               ),
             );

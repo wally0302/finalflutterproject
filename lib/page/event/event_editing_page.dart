@@ -44,7 +44,7 @@ class _EventEditingPageState extends State<EventEditingPage> {
   late DateTime toDate; //匹配結束日
   late DateTime eventTime; // 活動預計開始時間
   //活動預計時間長度
-  late int selectedHours = 1; // 初始小時數為 1 小時
+  late int selectedHours; // 初始小時數為 1 小時
 
   final hourController = TextEditingController(); //活動預計時間長度
 
@@ -77,6 +77,9 @@ class _EventEditingPageState extends State<EventEditingPage> {
       // 編輯活動
     } else {
       final event = widget.event!;
+      print(event.eID.toString());
+      print(event.eventName);
+      print(event.timeLengthHours);
       final eID = event.eID;
       titleController.text = event.eventName;
       fromDate = event.eventBlockStartTime;
@@ -84,7 +87,8 @@ class _EventEditingPageState extends State<EventEditingPage> {
       matchTime = event.matchTime;
       eventTime = event.eventTime; //活動預計開始時間
       invitedFriends = event.friends as List<Friend>;
-      selectedHours = hourController.text as int;
+      hourController.text = event.timeLengthHours.toString();
+      selectedHours = event.timeLengthHours as int;
       if (!event.location.isNotEmpty) {
         locationController.text = '';
       } else {
