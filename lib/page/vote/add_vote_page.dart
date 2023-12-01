@@ -215,13 +215,15 @@ class _AddVotePageState extends State<AddVotePage> {
       child: Row(
         children: [
           Expanded(
-            flex: 2,
+            flex: 1,
             child: buildDropdownField(
               text: Utils.toDate(endTime),
               onClicked: () => pickFromDateTime(pickDate: true),
             ),
           ),
+          // SizedBox(width: 8), // 添加一些間隔
           Expanded(
+            flex: 1, // 同樣分配 flex 值
             child: buildDropdownField(
               text: Utils.toTime(endTime),
               onClicked: () => pickFromDateTime(pickDate: false),
@@ -258,7 +260,7 @@ class _AddVotePageState extends State<AddVotePage> {
           child, // 显示子部件
         ],
       );
-// 异步方法，用于选择日期和时间
+
   Future pickFromDateTime({required bool pickDate}) async {
     final date =
         await pickDateTime(endTime, pickDate: pickDate); // 调用选择日期和时间的方法

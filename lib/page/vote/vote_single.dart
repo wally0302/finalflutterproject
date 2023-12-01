@@ -5,7 +5,8 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 import '../../provider/vote_provider.dart'; // 引入投票提供者
-import '../../services/http.dart'; // 引入HTTP服務
+import '../../services/http.dart';
+import '../login_page.dart'; // 引入HTTP服務
 
 class SingleVote extends StatefulWidget {
   final Vote vote; // 投票對象
@@ -53,7 +54,7 @@ class _SingleVoteState extends State<SingleVote> {
     print(widget.vote.vID);
     // 調用 APIservice 的方法獲取投票結果
     final result = await APIservice.seletallVoteResult(
-        vID: widget.vote.vID, userMall: '1112'); // userMall要更改
+        vID: widget.vote.vID, userMall: FirebaseEmail!);
     print('伺服器返回的結果: $result');
     // 確保結果不為空且格式正確
     if (result != null && result.isNotEmpty) {
@@ -170,7 +171,7 @@ class _SingleVoteState extends State<SingleVote> {
                       print('請選擇一個選項');
                       return;
                     }
-                    String tmpUserMail = '1112'; //這裡要更改為使用者的userMall
+                    String tmpUserMail = FirebaseEmail!; //這裡要更改為使用者的userMall
                     print(widget.vote.vID);
                     final tmpResult = await APIservice.seletallVoteResult(
                         vID: widget.vote.vID, userMall: tmpUserMail);

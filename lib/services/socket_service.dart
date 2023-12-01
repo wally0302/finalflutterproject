@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 
 import '../constants.dart';
 import '../model/chat.dart';
+import '../services/notification_servicer.dart';
 
 class SocketService {
-  static late StreamController<Chat> _socketResponse;
+  static late StreamController<List<Chat>> _socketResponse;
   static late StreamController<List<String>> _userResponse;
   static late io.Socket _socket;
   static String _userName = '';
@@ -16,7 +17,7 @@ class SocketService {
 
   // static String? get userId => _socket.id;
 
-  static Stream<Chat> get getResponse =>
+  static Stream<List<Chat>> get getResponse =>
       _socketResponse.stream.asBroadcastStream();
   static Stream<List<String>> get userResponse =>
       _userResponse.stream.asBroadcastStream();
@@ -53,7 +54,7 @@ class SocketService {
 
   static void connectAndListen(String eID) {
     //把這
-    _socketResponse = StreamController<Chat>();
+    _socketResponse = StreamController<List<Chat>>();
     _userResponse = StreamController<List<String>>();
     _socket = io.io(
         serverUrl,
@@ -77,31 +78,40 @@ class SocketService {
     // 接收srver傳來的訊息
     //When an event recieved from server, data is added to the stream
     _socket.on('message', (data) {
-      print('收到訊息');
-      print(data);
-      _socketResponse.sink.add(Chat.fromRawJson(data));
+      // print('收到訊息');
+      // print(data);
+      // _socketResponse.sink.add(Chat.fromRawJson(data));
+      var message = [Chat.fromRawJson(data)];
+      print(message[0]);
+      _socketResponse.sink.add(message);
+
+      NotificationService().showNotificationAndroid(
+          '${message[0].userMall}', '${message[0].messageContent}');
     });
 
     //接收server傳來的媒合不須投票結果
     _socket.on('result', (data) {
-      _socketResponse.sink.add(Chat.fromRawJson(data));
+      // _socketResponse.sink.add(Chat.fromRawJson(data));
+      var result =
+          (data as List<dynamic>).map((e) => Chat.fromRawJson(e)).toList();
+      _socketResponse.sink.add(result);
     });
 
     // 接收一開始聊天室訊息
-    _socket.on('chatMessage', (data) {
-      print(data);
-      // for (final element in data) {
-      //   print(element);
-      //   _socketResponse.sink.add(Chat.fromRawJson(element));
-      // }
-      _socketResponse.sink.add(Chat.fromRawJson(data));
-      // data.forEach((element) {
-      //   print(element);
-      //   _socketResponse.sink.add(Chat.fromRawJson(element));
-      // });
-      print('印出一開始回復訊息');
-      print(_socketResponse);
-    });
+    // _socket.on('chatMessage', (data) {
+    //   print(data);
+    //   // for (final element in data) {
+    //   //   print(element);
+    //   //   _socketResponse.sink.add(Chat.fromRawJson(element));
+    //   // }
+    //   _socketResponse.sink.add(Chat.fromRawJson(data));
+    //   // data.forEach((element) {
+    //   //   print(element);
+    //   //   _socketResponse.sink.add(Chat.fromRawJson(element));
+    //   // });
+    //   print('印出一開始回復訊息');
+    //   print(_socketResponse);
+    // });
 
     //接收server傳來的媒合須投票結果
     // _socket.on('resultVote', (data) {
@@ -114,6 +124,22 @@ class SocketService {
     //   final streamController = StreamController<Chat>();
     //   // 將 `Chat` 資料添加到 `Stream` 中
     //   streamController.sink.add(Chat.fromRawJson(data));
+
+    _socket.on('allChatMessages', (data) {
+      print('allChatMessages');
+      print(data);
+      var result =
+          (data as List<dynamic>).map((e) => Chat.fromRawJson(e)).toList();
+      _socketResponse.sink.add(result);
+    });
+
+    _socket.on('voteMessage', (data) {
+      print('投票結果');
+      print(data);
+      var message = [Chat.fromRawJson(data)];
+      print(message[0]);
+      _socketResponse.sink.add(message);
+    });
 
     //   // 訂閱 `Stream`
     //   streamController.stream

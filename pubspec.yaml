@@ -55,6 +55,7 @@ dependencies:
   socket_io_client: ^2.0.3+1
   flutter_svg: ^2.0.7
   swipe_to: 1.0.2
+  flutter_local_notifications: ^16.2.0
 
 dev_dependencies:
   flutter_test:

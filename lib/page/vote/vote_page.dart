@@ -152,7 +152,7 @@ class _VotePageState extends State<VotePage> {
               if (result != null && result is Vote) {
                 voteProvider.addVote(result);
               }
-              // add_vote.dart中的Navigator.of(context).pop(true);
+              // add_vote.dart中的Navigator.pop(context, vote);會將投票資料回傳到這裡
               //如果結果為 true，則重新加載數據
               if (result == true) {
                 getallVote();
@@ -183,6 +183,7 @@ class _VotePageState extends State<VotePage> {
                 ),
                 child: Stack(
                   children: [
+                    // 通过InkWell添加一个可点击的透明区域，用于导航到投票详情页
                     Positioned.fill(
                       child: InkWell(
                         onTap: () {

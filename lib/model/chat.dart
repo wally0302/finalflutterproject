@@ -14,6 +14,7 @@ class Chat {
   // String? replyMessage;
 
   final Chat? replyMessage;
+  final String? message;
 
   // 這幾個不用存資料庫
   final String? activityName;
@@ -32,6 +33,7 @@ class Chat {
       this.messageSendTime,
       this.returnMessage,
       this.replyMessage,
+      this.message,
       // required this.replyMessage,
       this.activityName,
       this.activityTime,
@@ -50,6 +52,7 @@ class Chat {
       replyMessage: jsonData['replyMessage'] == null
           ? null
           : Chat.fromRawJson(jsonData['replyMessage']),
+      message: jsonData['message'],
       activityName: jsonData['activityName'],
       activityTime: jsonData['activityTime'],
       activityLocation: jsonData['activityLocation'],
@@ -67,6 +70,7 @@ class Chat {
       "messageSendTime": messageSendTime,
       "returnMessage": returnMessage,
       "replyMessage": replyMessage == null ? null : replyMessage!.toJson(),
+      "message": message,
       "activityName": activityName,
       "activityTime": activityTime,
       "activityLocation": activityLocation,

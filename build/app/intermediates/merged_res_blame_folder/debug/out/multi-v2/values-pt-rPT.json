@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.create_event2.app-mergeDebugResources-15:/values-pt-rPT/values-pt-rPT.xml",
+            "outputFile": "com.example.create_event2.app-mergeDebugResources-16:/values-pt-rPT/values-pt-rPT.xml",
             "map": [
                 {
                     "source": "C:\\Users\\oaowa\\.gradle\\caches\\transforms-3\\ae42e6c01585f28a5adeac7499fca147\\transformed\\core-1.6.0\\res\\values-pt-rPT\\values-pt-rPT.xml",

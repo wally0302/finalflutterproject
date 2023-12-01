@@ -14,6 +14,8 @@ import 'message_view.dart';
 import 'reply_message.dart';
 import 'package:flutter/services.dart';
 import 'package:swipe_to/swipe_to.dart';
+import 'package:http/http.dart';
+import 'package:flutter/scheduler.dart';
 
 // ignore: library_private_types_in_public_api
 // GlobalKey<_ChatTextInputState> chatTextInputKey =
@@ -93,6 +95,7 @@ class _ChatPageState extends State<ChatPage> {
             leading: CloseButton(
               color: Colors.black,
               onPressed: () {
+                SocketService.dispose();
                 Navigator.of(context).pop();
               },
             ),
@@ -192,25 +195,35 @@ class __ChatBodyState extends State<_ChatBody> {
     ScrollController _scrollController = ScrollController();
 
     ///scrolls to the bottom of page
-    void _scrollDown() {
+    void _scrollDown() async {
       try {
-        Future.delayed(
-            const Duration(milliseconds: 300),
-            () => _scrollController
-                .jumpTo(_scrollController.position.maxScrollExtent));
+        // if (_scrollController.hasClients) {
+        //   Future.delayed(const Duration(milliseconds: 300), () {
+        //     _scrollController!
+        //         .jumpTo(_scrollController.position.maxScrollExtent);
+        //   });
+        // }
+        if (_scrollController.hasClients) {
+          SchedulerBinding.instance?.addPostFrameCallback((_) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              curve: Curves.fastOutSlowIn,
+              duration: const Duration(milliseconds: 1),
+            );
+          });
+        }
       } on Exception catch (_) {}
     }
 
     return Expanded(
       child: StreamBuilder(
         stream: SocketService.getResponse,
-        builder: (BuildContext context, AsyncSnapshot<Chat> snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<List<Chat>> snapshot) {
           if (snapshot.connectionState == ConnectionState.none) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (snapshot.hasData && snapshot.data != null) {
-            chats.add(snapshot.data!);
+            chats.addAll(snapshot.data!);
           }
           _scrollDown();
           return ListView.builder(
@@ -219,7 +232,7 @@ class __ChatBodyState extends State<_ChatBody> {
             itemBuilder: (BuildContext context, int index) {
               final chat = chats[index];
               return SwipeTo(
-                onRightSwipe: () => widget.onSwipedMessage(chat),
+                // onRightSwipe: () => widget.onSwipedMessage(chat),
                 child: MessageView(
                   chat: chat,
                 ),
@@ -262,6 +275,7 @@ class ChatTextInput extends StatefulWidget {
 class _ChatTextInputState extends State<ChatTextInput> {
   var textController = TextEditingController();
   String message = '';
+  var focusNode = FocusNode();
   static final inputTopRadius = Radius.circular(12);
   static final inputBottomRadius = Radius.circular(24);
   //bool isReplying = false;
@@ -279,7 +293,7 @@ class _ChatTextInputState extends State<ChatTextInput> {
   @override
   void initState() {
     super.initState();
-
+    focusNode.unfocus();
     // isReplying = false;
     // setState(() {
     //   name = widget.returnName;
@@ -468,29 +482,31 @@ class _ChatTextInputState extends State<ChatTextInput> {
                 children: [
                   if (isReplying) buildReply(),
                   TextField(
-                    maxLines: null,
-                    focusNode: widget.focusNode,
+                    // maxLines: null,
+                    focusNode: focusNode,
+
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.send,
                     autofocus: true,
                     controller: textController,
                     onSubmitted: (s) => sendMessage(),
                     decoration: InputDecoration(
-                        hintText: 'Send a message',
-                        filled: true,
-                        fillColor: Colors.grey,
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.only(
-                              topLeft: isReplying
-                                  ? Radius.zero
-                                  : Radius.circular(24),
-                              topRight: isReplying
-                                  ? Radius.zero
-                                  : Radius.circular(24),
-                              bottomLeft: Radius.circular(24),
-                              bottomRight: Radius.circular(24),
-                            ))),
+                      hintText: '輸入訊息',
+                      filled: true,
+                      // fillColor: Colors.grey,
+
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color.fromRGBO(74, 125, 171, 1),
+                        ),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
+                          bottomLeft: Radius.circular(24),
+                          bottomRight: Radius.circular(24),
+                        ),
+                      ),
+                    ),
                     onChanged: (value) => setState(
                       () {
                         message = value;
