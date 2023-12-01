@@ -174,123 +174,108 @@ class _VotePageState extends State<VotePage> {
             itemCount: _votes.length,
             itemBuilder: (context, index) {
               final vote = _votes[index];
-              return Container(
-                margin: EdgeInsets.all(20.0),
-                padding: EdgeInsets.all(25.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Stack(
-                  children: [
-                    // 通过InkWell添加一个可点击的透明区域，用于导航到投票详情页
-                    Positioned.fill(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => VoteList(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          color: Colors.transparent,
-                        ),
+              return InkWell(
+                onTap: () {
+                  // 点击卡片导航到投票结果页面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VoteResultPage(
+                        voteName: vote.voteName,
+                        vID: vote.vID,
+                        event: widget.event,
                       ),
                     ),
-                    Column(
+                  );
+                },
+                child: Card(
+                  margin:
+                      EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                  elevation: 5.0,
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           vote.voteName,
-                          style: TextStyle(fontSize: 20),
+                          style: TextStyle(
+                              fontSize: 22, fontWeight: FontWeight.bold),
                         ),
+                        SizedBox(height: 8),
                         Text(
                           '截止時間 : ${DateFormat('yyyy/MM/dd HH:mm').format(vote.endTime)}',
-                          style: TextStyle(fontSize: 16),
+                          style:
+                              TextStyle(fontSize: 18, color: Colors.grey[600]),
                         ),
-                      ],
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              primary: Color(0xFFCFE3F4), // 设置按钮的背景颜色
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(30), // 设置按钮的圆角
+                        SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: Color(0xFF4A7DAB),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              DateTime.now().isBefore(vote.endTime)
-                                  ? "投票"
-                                  : "查看結果", // 時間到會將文字改成查看結果
-                              style: TextStyle(
-                                color: Colors.black, // 设置文本颜色
-                                fontSize: 15, // 设置字体大小
-                                fontFamily: 'DFKai-SB', // 设置字体
-                                fontWeight: FontWeight.w600, // 设置字体粗细
+                              child: Text(
+                                DateTime.now().isBefore(vote.endTime)
+                                    ? "投票"
+                                    : "查看结果",
+                                style: TextStyle(color: Colors.white),
                               ),
-                            ),
-                            onPressed: () {
-                              // 根據投票的截止時間檢查是否可以進行投票
-                              if (DateTime.now().isBefore(vote.endTime)) {
-                                // 根据投票类型导航到不同的投票页面
-                                if (vote.singleOrMultipleChoice) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      // 多選
-                                      builder: (context) => VoteCheckbox(
-                                        vote: vote,
-                                        // voteOptions:
-                                        //     _voteOptions.cast<VoteOption>(),
+                              onPressed: () {
+                                // 根据投票的截止时间检查是否可以进行投票
+                                if (DateTime.now().isBefore(vote.endTime)) {
+                                  // 根据投票类型导航到不同的投票页面
+                                  if (vote.singleOrMultipleChoice) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => VoteCheckbox(
+                                          vote: vote,
+                                          event: widget.event,
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SingleVote(
+                                          vote: vote,
+                                          event: widget.event,
+                                        ),
+                                      ),
+                                    );
+                                  }
                                 } else {
+                                  // 如果投票已结束，导航到投票结果页面
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      // 單選
-                                      builder: (context) => SingleVote(
-                                        vote: vote,
+                                      builder: (context) => VoteResultPage(
+                                        voteName: vote.voteName,
+                                        vID: vote.vID,
                                         event: widget.event,
                                       ),
                                     ),
                                   );
                                 }
-                              } else {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => VoteResultPage(
-                                              //結果頁面
-                                              voteName: vote.voteName,
-                                              vID: vote.vID,
-                                              event: widget.event,
-                                            )));
-                              }
-                            },
-                          ),
-                          IconButton(
-                            // 刪除投票
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              _confirmDeleteDialog(
-                                  context, index, vote); //11/20 更改
-                            },
-                          ),
-                        ],
-                      ),
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () {
+                                _confirmDeleteDialog(context, index, vote);
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               );
             },

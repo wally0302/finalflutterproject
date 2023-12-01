@@ -1,16 +1,20 @@
+import 'package:create_event2/page/login_page.dart';
 import 'package:create_event2/page/vote/vote_result.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../model/event.dart';
 import '../../model/vote.dart';
 import '../../provider/vote_provider.dart';
 import '../../services/http.dart'; // 别忘了导入你的 Vote 类
 
 class VoteCheckbox extends StatefulWidget {
   final Vote vote;
+  final Event? event;
 
   VoteCheckbox({
     Key? key,
     required this.vote,
+    this.event,
   }) : super(key: key);
 
   @override
@@ -50,7 +54,7 @@ class _VoteCheckboxState extends State<VoteCheckbox> {
   getallResults() async {
     // 從伺服器獲取投票結果
     final result = await APIservice.seletallVoteResult(
-        vID: widget.vote.vID, userMall: '1112'); // userMall要更改
+        vID: widget.vote.vID, userMall: FirebaseEmail!); // userMall要更改
     print('伺服器返回的結果: $result');
 
     // 檢查伺服器回傳的結果是否是一個 List
@@ -143,7 +147,7 @@ class _VoteCheckboxState extends State<VoteCheckbox> {
                   ),
                 ),
                 onPressed: () async {
-                  String tmpUserMail = '1112'; //這裡要更改為根據使用者的userMall
+                  String tmpUserMail = FirebaseEmail!; //這裡要更改為根據使用者的userMall
                   final tmpResult = await APIservice.seletallVoteResult(
                       vID: widget.vote.vID, userMall: tmpUserMail);
                   // 存儲更新後的投票結果內容
