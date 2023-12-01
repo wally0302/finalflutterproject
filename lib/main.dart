@@ -72,7 +72,7 @@ class MyApp extends StatelessWidget {
         '/MyBottomBar3': ((context) => const MyBottomBar(i: 3)),
         '/MyBottomBar4': ((context) => const MyBottomBar(i: 4)),
         '/login': ((context) => LoginPage()),
-        // '/vote': ((context) => VotePage()),
+        '/votePage': (context) => VotePage(),
         // '/chat': ((context) => ChatPage()),
         '/eventpage': ((context) => EventPage()),
       },

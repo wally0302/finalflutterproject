@@ -4,16 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
+import '../../model/event.dart';
 import '../../provider/vote_provider.dart'; // 引入投票提供者
 import '../../services/http.dart';
 import '../login_page.dart'; // 引入HTTP服務
 
 class SingleVote extends StatefulWidget {
   final Vote vote; // 投票對象
+  final Event? event;
 
   const SingleVote({
     Key? key,
     required this.vote,
+    this.event,
   }) : super(key: key);
 
   @override
@@ -50,7 +53,7 @@ class _SingleVoteState extends State<SingleVote> {
 
   // 抓回投票結果
   getallResult() async {
-    print("------------getallResult------------------");
+    print("------------vote_single.dartgetallResult------------------");
     print(widget.vote.vID);
     // 調用 APIservice 的方法獲取投票結果
     final result = await APIservice.seletallVoteResult(
@@ -209,12 +212,13 @@ class _SingleVoteState extends State<SingleVote> {
                       }
                     }
                     // 跳轉頁面到投票結果
-                    Navigator.push(
+                    Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                             builder: (context) => VoteResultPage(
                                   voteName: widget.vote.voteName,
                                   vID: widget.vote.vID,
+                                  event: widget.event,
                                 )));
                   },
                 ),

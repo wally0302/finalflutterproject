@@ -1,6 +1,7 @@
 import 'package:create_event2/page/vote/vote_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../model/event.dart';
 import '../../model/vote.dart';
 import '../../provider/vote_provider.dart';
 import '../../services/http.dart';
@@ -8,10 +9,12 @@ import '../../services/http.dart';
 class VoteResultPage extends StatefulWidget {
   final String voteName; //
   final int vID;
+  final Event? event;
 
   VoteResultPage({
     required this.voteName, // 投票問題的描述，必需的參數
     required this.vID,
+    this.event,
   });
 
   @override
@@ -30,7 +33,7 @@ class _VoteResultPageState extends State<VoteResultPage> {
 
   // 抓回選項內容
   getOption() async {
-    print("-------------getOptionResult-----------------");
+    print("-------------vote_result.dartgetOptionResult-----------------");
 
     // 獲取投票選項資料
     final result = await APIservice.seletallVoteOptions(vID: widget.vID);
@@ -64,15 +67,13 @@ class _VoteResultPageState extends State<VoteResultPage> {
           centerTitle: true, //標題置中
           backgroundColor: Color(0xFF4A7DAB), // 這裡設置 AppBar 的顏色
           iconTheme: IconThemeData(color: Colors.black), // 將返回箭头设为黑色
+          automaticallyImplyLeading: false, // 不顯示返回按鈕
 
           actions: [
             IconButton(
               icon: Icon(Icons.close, color: Colors.black),
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => VotePage())); // 11/20 增加跳轉頁面
+                Navigator.pop(context);
               },
             ),
           ],

@@ -133,7 +133,7 @@ class _VotePageState extends State<VotePage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context); // 返回上一页面
+            Navigator.pop(context);
           },
         ),
         actions: <Widget>[
@@ -261,6 +261,7 @@ class _VotePageState extends State<VotePage> {
                                       // 單選
                                       builder: (context) => SingleVote(
                                         vote: vote,
+                                        event: widget.event,
                                       ),
                                     ),
                                   );
@@ -273,6 +274,7 @@ class _VotePageState extends State<VotePage> {
                                               //結果頁面
                                               voteName: vote.voteName,
                                               vID: vote.vID,
+                                              event: widget.event,
                                             )));
                               }
                             },

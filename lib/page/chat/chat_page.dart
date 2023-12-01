@@ -100,17 +100,17 @@ class _ChatPageState extends State<ChatPage> {
               },
             ),
             actions: [
-              Builder(
-                builder: (context) => IconButton(
-                  icon: Icon(
-                    Icons.menu,
-                    color: Colors.black,
-                  ),
-                  onPressed: () => Scaffold.of(context).openEndDrawer(),
-                  tooltip:
-                      MaterialLocalizations.of(context).openAppDrawerTooltip,
-                ),
-              ),
+              // Builder(
+              //   builder: (context) => IconButton(
+              //     icon: Icon(
+              //       Icons.menu,
+              //       color: Colors.black,
+              //     ),
+              //     onPressed: () => Scaffold.of(context).openEndDrawer(),
+              //     tooltip:
+              //         MaterialLocalizations.of(context).openAppDrawerTooltip,
+              //   ),
+              // ),
             ],
             backgroundColor: Color.fromRGBO(74, 125, 171, 1),
             centerTitle: true,
