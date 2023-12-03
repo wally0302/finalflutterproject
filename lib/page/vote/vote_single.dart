@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:create_event2/model/vote.dart'; // 引入投票模型
 import 'package:create_event2/page/vote/vote_result.dart'; // 引入投票結果頁面
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 import '../../model/event.dart';
 import '../../provider/vote_provider.dart'; // 引入投票提供者
@@ -40,12 +43,25 @@ class _SingleVoteState extends State<SingleVote> {
     print(widget.vote.vID);
 
     final result = await APIservice.seletallVoteOptions(vID: widget.vote.vID);
+    print('伺服器返回的結果: $result');
+
     if (result[0]) {
       setState(() {
         _voteOptions = result[1].map((map) => VoteOption.fromMap(map)).toList();
       });
-      print('voteOptions');
-      print(_voteOptions);
+      print('voteOptions-----------------');
+      // print(_voteOptions);
+      // List<int> optionIDs = [];
+      for (int i = 0; i < _voteOptions.length; i++) {
+        // optionIDs.add(_voteOptions[i].oID);
+        final result2 = await APIservice.addVoteResult(content: {
+          'vID': widget.vote.vID,
+          'oID': _voteOptions[i].oID,
+          'userMall': FirebaseEmail!,
+          'status': 0,
+        });
+      }
+      // print(optionIDs);
     } else {
       print('$result 在 server 抓取投票選項失敗');
     }
@@ -175,11 +191,14 @@ class _SingleVoteState extends State<SingleVote> {
                       return;
                     }
                     String tmpUserMail = FirebaseEmail!; //這裡要更改為使用者的userMall
-                    print(widget.vote.vID);
+                    print('seletallVoteResult');
+
                     final tmpResult = await APIservice.seletallVoteResult(
                         vID: widget.vote.vID, userMall: tmpUserMail);
 
+                    print(tmpResult);
                     Map<String, dynamic> content;
+                    print('voteOptions');
                     print(_voteOptions);
                     // 遍歷所有投票選項，準備更新結果
                     for (int i = 0; i < _voteOptions.length; i++) {

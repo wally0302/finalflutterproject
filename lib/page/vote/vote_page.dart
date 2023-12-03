@@ -63,7 +63,7 @@ class _VotePageState extends State<VotePage> {
       setState(() {
         // 將從數據庫中獲取的Map列表轉換為Vote對象列表
         _votes = result[1].map((map) => Vote.fromMap(map)).toList();
-        print('抓取投票成功: $result');
+        print('votes: $_votes');
       });
     } else {
       print('$result 在 server 抓取投票失敗');

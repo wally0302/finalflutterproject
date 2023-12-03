@@ -678,6 +678,8 @@ class APIservice {
       //body: jsonEncode(content),
     );
     final serverVote = jsonDecode(response.body);
+    print('---serverVoteccccccccccccccccccccccccccccccccccccccc---');
+    print(serverVote);
     if (response.statusCode == 200 || response.statusCode == 400) {
       // for (var vote in serverVote) {
       //   int endTimeInt = vote['endTime'];
@@ -694,7 +696,7 @@ class APIservice {
       //           endTimeInt % 100 // 分钟
       //           ),
       //       singleOrMultipleChoice: vote['isChecked'] == 1);
-      //   // Sqlite.insert(tableName: 'vote', insertData: newVoteData.toMap());
+
       // }
       print('抓取投票選項成功');
       return [true, serverVote];
