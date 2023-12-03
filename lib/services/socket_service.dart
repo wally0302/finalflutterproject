@@ -13,7 +13,7 @@ class SocketService {
   static late StreamController<List<String>> _userResponse;
   static late io.Socket _socket;
   static String _userName = '';
-  static String _chatRoomId = '';
+  static String _chatRoomId = '265';
 
   // static String? get userId => _socket.id;
 

@@ -19,18 +19,27 @@ class EventViewingPage extends StatelessWidget {
   final Event event;
   final bool isMatched = true; // 是否匹配 (這裡會接收後端確認是否有媒合成功)
   final bool show; // 新增参数来控制是否显示时间
+  // final bool? isok;
 
   const EventViewingPage({
     Key? key,
     required this.event,
     this.show = true, // 默认为 true
+    // this.isok,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return isMatched
-        ? _buildMatchedPage(context)
-        : _buildNotMatchedPage(context);
+    if (event.state == 2) {
+      //多選，需前往投票
+      return _buildNotMatchedPage(context);
+    } else if (event.state == 1) {
+      //單選，有正確的媒合時間
+      return _buildMatchedPage(context);
+    } else {
+      //尚未媒合 event.state == 0
+      return _buildDefaultPage(context);
+    }
   }
 
 //媒合成功
@@ -130,16 +139,19 @@ class EventViewingPage extends StatelessWidget {
               SizedBox(
                 height: 24,
               ),
-              buildDateTime(event), //时间
-              const SizedBox(
+              //新增一個文字「因有多個媒合結果，已創建投票，請前往投票」
+              Text(
+                '因有多個媒合結果，已創建投票，請前往投票',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(
                 height: 24,
               ),
-              buildBeginDate(event), //活动预计开始时间
-              const SizedBox(
-                height: 24,
-              ),
-              buildDurationLength(event),
-              const SizedBox(
+              SizedBox(
                 height: 24,
               ),
               buildLocation(event), //地点
@@ -155,12 +167,6 @@ class EventViewingPage extends StatelessWidget {
                 height: 24,
               ),
               buildDeadline(event.matchTime), //媒合開始時間
-              const SizedBox(
-                height: 24,
-              ),
-              const SizedBox(
-                height: 24,
-              ),
               buildNotification(event, event.remindStatus) //提醒
             ],
           ),
@@ -169,7 +175,80 @@ class EventViewingPage extends StatelessWidget {
     );
   }
 
-  // 截止時間
+  //尚未媒合
+  //event.state == 0
+  Widget _buildDefaultPage(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF4A7DAB), // 设置 AppBar 的颜色
+        leading: CloseButton(
+          color: Colors.black,
+          onPressed: () {
+            Navigator.pop(context, event);
+          },
+        ),
+        actions: buildViewingActions(context, event), //编辑和删除按钮
+      ),
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/back.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          ListView(
+            padding: EdgeInsets.all(32),
+            children: <Widget>[
+              Text(
+                event.eventName,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(
+                height: 24,
+              ),
+              //新增一個文字「因有多個媒合結果，已創建投票，請前往投票」
+              Text(
+                '尚未媒合請等待媒合',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(
+                height: 24,
+              ),
+              SizedBox(
+                height: 24,
+              ),
+              buildLocation(event), //地点
+              const SizedBox(
+                height: 24,
+              ),
+              buildRemark(event), //备注
+              const SizedBox(
+                height: 24,
+              ),
+              buildInvitedFriendsList(event.friends), //邀请好友
+              const SizedBox(
+                height: 24,
+              ),
+              buildDeadline(event.matchTime), //媒合開始時間
+              buildNotification(event, event.remindStatus) //提醒
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+// 截止時間
   Widget buildDeadline(DateTime deadline) {
     if (show) {
       return SizedBox.shrink(); // 如果 show 為 true，則返回一個空的 SizedBox
@@ -178,17 +257,17 @@ class EventViewingPage extends StatelessWidget {
     final dateFormatter = DateFormat('E, d MMM yyyy HH:mm');
     final dateString = dateFormatter.format(deadline);
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.timer),
-        const SizedBox(
-          width: 3,
-        ),
         Text(
           '媒合開始時間：',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        Text(dateString, style: TextStyle(fontSize: 18)),
+        Text(
+          dateString,
+          style: TextStyle(fontSize: 18),
+        ),
       ],
     );
   }

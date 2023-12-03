@@ -22,7 +22,7 @@ class Event {
   final DateTime remindTime; //提醒時間
   //-------------------------------------------
   //後端會回傳給前端的資料
-  final int state; //1:已完成媒合 0:未完成媒合
+  int state; //1:已完成媒合 0:未完成媒合
   DateTime eventFinalStartTime; //最終確定時間 年月日時分
   DateTime eventFinalEndTime;
 

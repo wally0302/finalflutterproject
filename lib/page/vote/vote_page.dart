@@ -225,7 +225,7 @@ class _VotePageState extends State<VotePage> {
                                     : "查看结果",
                                 style: TextStyle(color: Colors.white),
                               ),
-                              onPressed: () {
+                              onPressed: () async {
                                 // 根据投票的截止时间检查是否可以进行投票
                                 if (DateTime.now().isBefore(vote.endTime)) {
                                   // 根据投票类型导航到不同的投票页面
@@ -249,6 +249,8 @@ class _VotePageState extends State<VotePage> {
                                         ),
                                       ),
                                     );
+                                    await APIservice.addVoteResult(
+                                        content: vote.tomap());
                                   }
                                 } else {
                                   // 如果投票已结束，导航到投票结果页面

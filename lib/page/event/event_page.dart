@@ -30,7 +30,6 @@ class _EventPageState extends State<EventPage> {
   List<Event> Eventlist = [];
   List<Event> notMatchTime = []; //媒合時間尚未到
   List<Event> yesMatchTime = []; //媒合時間到了 -> 就要開始媒合
-
   @override
   void initState() {
     super.initState();
@@ -93,7 +92,7 @@ class _EventPageState extends State<EventPage> {
                   itemCount: notMatchTime.length,
                   itemBuilder: (context, index) {
                     final event = notMatchTime[index];
-                    return buildEventTile(event, context, false);
+                    return buildEventTile(event, context, false, false);
                   },
                 ),
               ),
@@ -113,7 +112,13 @@ class _EventPageState extends State<EventPage> {
                   itemCount: yesMatchTime.length,
                   itemBuilder: (context, index) {
                     final event = yesMatchTime[index];
-                    return buildEventTile(event, context, true);
+                    bool isMatchTimePassed = true;
+                    bool isMultipleMatch = true;
+                    if (event.state == 2) {
+                      isMultipleMatch = false;
+                    }
+                    return buildEventTile(
+                        event, context, isMatchTimePassed, isMultipleMatch);
                   },
                 ),
               ),
@@ -122,8 +127,8 @@ class _EventPageState extends State<EventPage> {
         ));
   }
 
-  Widget buildEventTile(
-      Event event, BuildContext context, bool isMatchTimePassed) {
+  Widget buildEventTile(Event event, BuildContext context,
+      bool isMatchTimePassed, bool isMultipleMatch) {
     bool isHomeEvent = event.userMall == FirebaseEmail; // 判斷是否為房主創建的活動
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -139,7 +144,7 @@ class _EventPageState extends State<EventPage> {
               ? Icon(Icons.home)
               : Icon(Icons.group),
           title: Text(
-            isMatchTimePassed
+            isMultipleMatch
                 ? '${DateFormat('MMdd').format(event.eventFinalStartTime)} ~ ${DateFormat('MMdd').format(event.eventFinalEndTime)} ${event.eventName}'
                 : event.eventName,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -340,51 +345,78 @@ class _EventPageState extends State<EventPage> {
   Future<void> checkMatchTime() async {
     DateTime now = DateTime.now();
     for (var event in Eventlist) {
-      if (now.isAtSameMomentAs(event.matchTime) ||
-          (now.isAfter(event.matchTime) && !yesMatchTime.contains(event))) {
-        print('${event.eventName} 的媒合時間已到達');
-        // 媒合時間到了，就要開始媒合，觸發 後端 API
-        final result = await APIservice.match(
-            content: event.toMap(), eID: event.eID.toString());
-        //result[0]==false -> 沒有媒合成功 ，有多個選項，所以需要更改起始時間&結束時間，將他更改成<<需要前往投票>>
-        // print(result[0]);
+      print('-' * 20);
+      // print('event.eventName: ${event.eventName}');
+      // print('event.state: ${event.state}');
+      if (event.state == 0) {
+        //尚未媒合，才需要檢查，其他則不需要
 
-        //server回傳的資料
-        http.Response response = result[1];
-        String responseBody = response.body;
-        var decoded = json.decode(responseBody);
-        //  decoded['eventFinalStartTime'] : 202109201800
-        //要轉換成 DateTime:2023-11-29 20:00:00.000
-        //才能存進去 event.eventFinalStartTime
-        int eventFinalStartTimeInt = decoded['eventFinalStartTime'];
-        var eventFinalStartTime = DateTime(
-            eventFinalStartTimeInt ~/ 100000000, // 年
-            (eventFinalStartTimeInt % 100000000) ~/ 1000000, // 月
-            (eventFinalStartTimeInt % 1000000) ~/ 10000, // 日
-            (eventFinalStartTimeInt % 10000) ~/ 100, // 小时
-            eventFinalStartTimeInt % 100 // 分钟
-            );
+        if (now.isAtSameMomentAs(event.matchTime) ||
+            (now.isAfter(event.matchTime) && !yesMatchTime.contains(event))) {
+          print('${event.eventName} 的媒合時間已到達');
+          // 媒合時間到了，就要開始媒合，觸發 後端 API
+          final result = await APIservice.match(
+              content: event.toMap(), eID: event.eID.toString());
 
-        int eventFinalEndTimeInt = decoded['eventFinalEndTime'];
-        var eventFinalEndTime = DateTime(
-            eventFinalEndTimeInt ~/ 100000000, // 年
-            (eventFinalEndTimeInt % 100000000) ~/ 1000000, // 月
-            (eventFinalEndTimeInt % 1000000) ~/ 10000, // 日
-            (eventFinalEndTimeInt % 10000) ~/ 100, // 小时
-            eventFinalEndTimeInt % 100 // 分钟
-            );
-        try {
-          event.eventFinalStartTime = eventFinalStartTime;
-          event.eventFinalEndTime = eventFinalEndTime;
-        } catch (e) {
-          print('Error updating event times: $e');
+          //server回傳的資料
+
+          http.Response response = result[1];
+          String responseBody = response.body;
+
+          var decoded = json.decode(responseBody);
+          // print('decoded: $decoded');//印出server回傳的資料decoded: {eID: 273, userMall: oaowally123@gmail.com, eventName: trsttt, eventBlockStartTime: 20231203, eventBlockEndTime: 20231203, eventTime: 1500, timeLengthHours: 1, eventFinalStartTime: 202312031500, eventFinalEndTime: 202312031600, state: 1, matchTime: 202312031149, friends: , location: , remindStatus: 0, remindTime: 202312031148, remark: }
+          //尚未媒合: event.state == 0
+          //媒合(單個):event.state == 1
+          //媒合(多個): event.state == 2
+          int state = decoded['state'];
+
+          if (state == 2) {
+            print('YA 多選');
+            event.state = 2;
+            setState(() {
+              yesMatchTime.add(event);
+              notMatchTime.remove(event);
+              Eventlist.remove(event);
+            });
+          } else if (state == 1) {
+            //媒合成功(單選)
+            print('YA 媒合成功');
+            //server回傳的資料
+            //媒合(單個):完整的event
+            //  decoded['eventFinalStartTime'] : 202109201800
+            //要轉換成 DateTime:2023-11-29 20:00:00.000
+            //才能存進去 event.eventFinalStartTime
+            int eventFinalStartTimeInt = decoded['eventFinalStartTime'];
+            var eventFinalStartTime = DateTime(
+                eventFinalStartTimeInt ~/ 100000000, // 年
+                (eventFinalStartTimeInt % 100000000) ~/ 1000000, // 月
+                (eventFinalStartTimeInt % 1000000) ~/ 10000, // 日
+                (eventFinalStartTimeInt % 10000) ~/ 100, // 小时
+                eventFinalStartTimeInt % 100 // 分钟
+                );
+
+            int eventFinalEndTimeInt = decoded['eventFinalEndTime'];
+            var eventFinalEndTime = DateTime(
+                eventFinalEndTimeInt ~/ 100000000, // 年
+                (eventFinalEndTimeInt % 100000000) ~/ 1000000, // 月
+                (eventFinalEndTimeInt % 1000000) ~/ 10000, // 日
+                (eventFinalEndTimeInt % 10000) ~/ 100, // 小时
+                eventFinalEndTimeInt % 100 // 分钟
+                );
+            try {
+              event.eventFinalStartTime = eventFinalStartTime;
+              event.eventFinalEndTime = eventFinalEndTime;
+              event.state = 1;
+            } catch (e) {
+              print('Error updating event times: $e');
+            }
+            setState(() {
+              yesMatchTime.add(event);
+              notMatchTime.remove(event);
+              Eventlist.remove(event);
+            });
+          }
         }
-
-        setState(() {
-          yesMatchTime.add(event);
-          notMatchTime.remove(event);
-          Eventlist.remove(event);
-        });
       }
     }
   }

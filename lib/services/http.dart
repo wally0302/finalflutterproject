@@ -155,7 +155,8 @@ class APIservice {
   static Future<List<dynamic>> addEvent(
       {required Map<String, dynamic> content}) async {
     final url = Uri.parse("http://163.22.17.145:3000/api/event/insertEvent");
-
+    print('addevent content');
+    print(jsonEncode(content));
     final response = await http.post(
       url,
       headers: <String, String>{'Content-Type': 'application/json'},
@@ -518,7 +519,9 @@ class APIservice {
   // 新增投票結果
   static Future<List<dynamic>> addVoteResult(
       {required Map<String, dynamic> content}) async {
-    final url = Uri.parse("http://163.22.17.145:3000/api/result/insertResult/");
+    final url = Uri.parse("http://163.22.17.145:3000/api/result/insertResult");
+    print('addVoteResult content');
+    print(jsonEncode(content));
 
     final response = await http.post(
       url,
@@ -600,6 +603,8 @@ class APIservice {
   // 計算投票總票數
   static Future<List<dynamic>> countVote({required int oID}) async {
     final url = Uri.parse("http://163.22.17.145:3000/api/result/count/$oID");
+    print('---url---');
+    print(url);
     final response = await http.post(
       url,
       headers: <String, String>{'Content-Type': 'application/json'},
@@ -704,12 +709,17 @@ class APIservice {
       {required int vID, required String userMall}) async {
     final url = Uri.parse(
         "http://163.22.17.145:3000/api/result/getAllResult/$vID/$userMall");
+    print('seletallVoteResult url $url');
     final response = await http.post(
       url,
       headers: <String, String>{'Content-Type': 'application/json'},
       //body: jsonEncode(content),
     );
+    print('---response---');
+    print(response);
     final serverVote = jsonDecode(response.body);
+    print('---serverVote---');
+    print(serverVote);
     if (response.statusCode == 200 || response.statusCode == 400) {
       // for (var vote in serverVote) {
       //   int endTimeInt = vote['endTime'];
