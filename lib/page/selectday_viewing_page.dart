@@ -89,6 +89,10 @@ class _SelectedDayViewingPageState extends State<SelectedDayViewingPage> {
 
     setState(() {
       selectedDayEvent = eventlist.where((event) {
+        // 檢查 event.state 是否為 1
+        if (event.state != 1) {
+          return false;
+        }
         // 判斷行程是否在時間內
         final startDateTime = event.eventFinalStartTime;
         final endDateTime = event.eventFinalEndTime;

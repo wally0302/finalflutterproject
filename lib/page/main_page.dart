@@ -59,11 +59,13 @@ class _MainPageState extends State<MainPage> {
     }
 
     for (final event in eventlist) {
-      appointments.add(Appointment(
-        startTime: event.eventFinalStartTime,
-        endTime: event.eventFinalEndTime,
-        subject: event.eventName,
-      ));
+      if (event.state == 1) {
+        appointments.add(Appointment(
+          startTime: event.eventFinalStartTime,
+          endTime: event.eventFinalEndTime,
+          subject: event.eventName,
+        ));
+      }
     }
 
     return MaterialApp(

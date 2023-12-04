@@ -1,5 +1,6 @@
 import 'package:create_event2/page/vote/vote_page.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../model/event.dart';
 import '../../model/vote.dart';
@@ -101,35 +102,34 @@ class _VoteResultPageState extends State<VoteResultPage> {
                     shrinkWrap: true,
                     itemCount: _voteOptions.length,
                     itemBuilder: (context, index) {
-                      // 確保 _voteOptions[index].votingOptionContent 不為空
                       if (_voteOptions[index].votingOptionContent.isNotEmpty) {
-                        // 提取並分割日期範圍
                         String dateRangeString =
                             _voteOptions[index].votingOptionContent[0];
-                        List<String> dateRange = dateRangeString.split('~ ');
 
-                        String formattedDateRange = '';
-                        if (dateRange.length == 2) {
-                          // 格式化日期
-                          String formattedStart = formatDateTime(dateRange[0]);
-                          String formattedEnd = formatDateTime(dateRange[1]);
-                          formattedDateRange =
-                              "$formattedStart ~ $formattedEnd";
-                        } else {
-                          formattedDateRange = "Invalid Date Range";
-                        }
+                        var StartTimeStr =
+                            dateRangeString.split('~')[0]; // 開始時間
+                        var EndTimeStr = dateRangeString.split('~')[1]; // 結束時間
 
-                        // 組合格式化的日期範圍和票數
-                        String optionText = "$formattedDateRange：" +
-                            _oIDtoCount[index].toString();
+                        final dateFormatter = DateFormat('E, d MMM yyyy HH:mm');
+                        final StartTimeString =
+                            dateFormatter.format(parseDate(StartTimeStr));
+                        final EndTimeString =
+                            dateFormatter.format(parseDate(EndTimeStr));
 
-                        print(optionText);
+                        String optionText =
+                            "$StartTimeString \n$EndTimeString  ";
 
-                        return ListTile(
-                          title: Text(
-                            optionText,
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                        return Card(
+                          child: ListTile(
+                            leading: Icon(Icons.date_range,
+                                color: Colors.blue), // 添加圖標
+                            title: Text(
+                              optionText,
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle:
+                                Text("票數: ${_oIDtoCount[index]}"), // 添加票數信息
                           ),
                         );
                       } else {
@@ -152,12 +152,16 @@ class _VoteResultPageState extends State<VoteResultPage> {
     });
   }
 
-  String formatDateTime(String dateTime) {
-    String year = dateTime.substring(0, 4);
-    String month = dateTime.substring(4, 6);
-    String day = dateTime.substring(6, 8);
-    String time = dateTime.substring(8, 12);
+  DateTime parseDate(String dateStr) {
+    // 假設 dateStr 是 "202312040800~202312040900" 這樣的格式
+    var StartTimeInt = int.parse(dateStr);
 
-    return "$year/$month/$day/$time";
+    return DateTime(
+        StartTimeInt ~/ 100000000, // 年
+        (StartTimeInt % 100000000) ~/ 1000000, // 月
+        (StartTimeInt % 1000000) ~/ 10000, // 日
+        (StartTimeInt % 10000) ~/ 100, // 小时
+        StartTimeInt % 100 // 分钟
+        );
   }
 }

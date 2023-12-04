@@ -77,9 +77,6 @@ class _EventEditingPageState extends State<EventEditingPage> {
       // 編輯活動
     } else {
       final event = widget.event!;
-      print(event.eID.toString());
-      print(event.eventName);
-      print(event.timeLengthHours);
       final eID = event.eID;
       titleController.text = event.eventName;
       fromDate = event.eventBlockStartTime;

@@ -4,6 +4,7 @@ import 'package:create_event2/model/vote.dart'; // 引入投票模型
 import 'package:create_event2/page/vote/vote_result.dart'; // 引入投票結果頁面
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
@@ -146,35 +147,51 @@ class _SingleVoteState extends State<SingleVote> {
                 shrinkWrap: true,
                 itemCount: _voteOptions.length,
                 itemBuilder: (context, index) {
-                  String dateRangeString =
-                      _voteOptions[index].votingOptionContent[0];
+                  if (_voteOptions[index].votingOptionContent.isNotEmpty) {
+                    String dateRangeString =
+                        _voteOptions[index].votingOptionContent[0];
 
-                  // 分割日期範圍為開始和結束日期
-                  List<String> dateRange = dateRangeString.split('~ ');
-                  print('dateRange');
-                  print(dateRange[0]);
-                  // 格式化兩個日期
-                  String formattedStart = formatDateTime(dateRange[0]);
-                  String formattedEnd = formatDateTime(dateRange[1]);
+                    var StartTimeStr = dateRangeString.split('~')[0]; // 開始時間
+                    var EndTimeStr = dateRangeString.split('~')[1]; // 結束時間
 
-                  // 將格式化後的日期組合成一個新的範圍字符串
-                  String optionText = "$formattedStart ~ $formattedEnd";
-                  print(optionText);
+                    final dateFormatter = DateFormat('E, d MMM yyyy HH:mm');
+                    final StartTimeString =
+                        dateFormatter.format(parseDate(StartTimeStr));
+                    final EndTimeString =
+                        dateFormatter.format(parseDate(EndTimeStr));
 
-                  return RadioListTile(
-                    title: Text(
-                      optionText,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    value: index,
-                    groupValue: selectedOptionIndex,
-                    onChanged: (int? value) {
-                      setState(() {
-                        selectedOptionIndex = value!;
-                      });
-                    },
-                  );
+                    String optionText = "$StartTimeString \n$EndTimeString";
+
+                    return Card(
+                      child: ListTile(
+                        leading:
+                            Icon(Icons.date_range, color: Colors.blue), // 添加圖標
+                        title: Text(
+                          optionText,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+
+                        trailing: Radio(
+                          value: index,
+                          groupValue: selectedOptionIndex,
+                          onChanged: (int? value) {
+                            setState(() {
+                              selectedOptionIndex = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                  } else {
+                    return ListTile(
+                      title: Text(
+                        "No Date Provided",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  }
                 },
               ),
               Padding(
@@ -259,12 +276,16 @@ class _SingleVoteState extends State<SingleVote> {
     );
   }
 
-  String formatDateTime(String dateTime) {
-    String year = dateTime.substring(0, 4);
-    String month = dateTime.substring(4, 6);
-    String day = dateTime.substring(6, 8);
-    String time = dateTime.substring(8, 12);
+  DateTime parseDate(String dateStr) {
+    // 假設 dateStr 是 "202312040800~202312040900" 這樣的格式
+    var StartTimeInt = int.parse(dateStr);
 
-    return "$year/$month/$day/$time";
+    return DateTime(
+        StartTimeInt ~/ 100000000, // 年
+        (StartTimeInt % 100000000) ~/ 1000000, // 月
+        (StartTimeInt % 1000000) ~/ 10000, // 日
+        (StartTimeInt % 10000) ~/ 100, // 小时
+        StartTimeInt % 100 // 分钟
+        );
   }
 }
