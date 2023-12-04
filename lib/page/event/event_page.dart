@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 import '../../bottom_bar.dart';
+import '../../firebasechat/guest_book.dart';
 import '../../model/event.dart';
 import '../../provider/event_provider.dart';
 import '../../services/socket_service.dart';
@@ -238,8 +239,8 @@ class _EventPageState extends State<EventPage> {
                 ),
               );
             } else if (action == 'chat') {
-              SocketService.connectAndListen(event.eID.toString());
-
+              SocketService.connectAndListen(FirebaseEmail!);
+              SocketService.setEID(event.eID.toString());
               SocketService.setUserName(FirebaseEmail!);
               SocketService.setChatRoomId(event.eID.toString());
               print('event.eID:'); // 設定聊天室 ID

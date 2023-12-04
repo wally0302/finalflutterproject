@@ -319,8 +319,8 @@ class _ChatTextInputState extends State<ChatTextInput> {
       // widget.onCancelReply();
       var message = textController.text;
       if (message.isEmpty) return;
-      SocketService.sendMessage(
-          widget.event.eID.toString(), message, widget.replyMessage);
+      SocketService.sendMessage(widget.event.eID.toString(), message,
+          widget.chatRoomId, widget.replyMessage);
       textController.text = '';
       widget.focusNode.requestFocus();
     }

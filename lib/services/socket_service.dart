@@ -30,10 +30,16 @@ class SocketService {
     _chatRoomId = chatRoomId;
   }
 
+  static void setEID(String eID) {
+    _socket.emit('chatRoom', {"eID": eID, "chatRoomId": eID});
+  }
+
 // 傳訊息給server
-  static void sendMessage(String eID, String message, Chat? replyMessage) {
+  static void sendMessage(
+      String eID, String message, String chatRoomId, Chat? replyMessage) {
+    print(chatRoomId);
     _socket.emit('message', {
-      "chatID": _chatRoomId, //接收server 'eID': eid
+      "chatRoomId": chatRoomId, //接收server 'eID': eid
       "userMall": _userName,
       "messageContent": message,
       "messageSendTime": DateTime.now().toString(),
@@ -52,14 +58,14 @@ class SocketService {
   //   _socket.emit('getChatMessages', {"chatID": 1});
   // }
 
-  static void connectAndListen(String eID) {
+  static void connectAndListen(String userMall) {
     // if (_socket != null && _socket.connected) {
     //   _socket.disconnect();
     // }
-    print('Connecting with eID: $eID');
-    print('--------------連接1');
-    print(_chatRoomId);
-    _chatRoomId = eID;
+    // print('Connecting with eID: $eID');
+    // print('--------------連接1');
+    // print(_chatRoomId);
+    // _chatRoomId = eID;
     //把這
     _socketResponse = StreamController<List<Chat>>();
     _userResponse = StreamController<List<String>>();
@@ -72,9 +78,9 @@ class SocketService {
             // .setExtraHeaders({'foo': 'bar'})
             // .disableAutoConnect()
             .setQuery({
-          'userName': _userName,
-          'chatRoomId': _chatRoomId,
-          'eID': _chatRoomId,
+          'userName': userMall,
+          // 'chatRoomId': _chatRoomId,
+          // 'eID': _chatRoomId,
         }) //這個uid接收server  'eID': eid
             .build());
 
