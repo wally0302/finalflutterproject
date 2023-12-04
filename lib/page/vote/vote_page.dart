@@ -174,9 +174,9 @@ class _VotePageState extends State<VotePage> {
             itemCount: _votes.length,
             itemBuilder: (context, index) {
               final vote = _votes[index];
+
               return InkWell(
                 onTap: () {
-                  // 点击卡片导航到投票结果页面
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -249,8 +249,9 @@ class _VotePageState extends State<VotePage> {
                                         ),
                                       ),
                                     );
+
                                     await APIservice.addVoteResult(
-                                        content: vote.tomap());
+                                        content: vote);
                                   }
                                 } else {
                                   // 如果投票已结束，导航到投票结果页面

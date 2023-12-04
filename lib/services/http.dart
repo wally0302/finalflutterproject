@@ -520,6 +520,8 @@ class APIservice {
   static Future<List<dynamic>> addVoteResult(
       {required Map<String, dynamic> content}) async {
     final url = Uri.parse("http://163.22.17.145:3000/api/result/insertResult");
+    print('content');
+    print(content);
     print('addVoteResult content');
     print(jsonEncode(content));
 
@@ -530,7 +532,7 @@ class APIservice {
     );
     final responseString = jsonDecode(response.body);
     if (response.statusCode == 200 || response.statusCode == 400) {
-      print('新增投票結果成功');
+      print('新增投票結果成功1');
       return [true, responseString];
     } else {
       print('新增投票結果失敗');

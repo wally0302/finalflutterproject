@@ -50,8 +50,9 @@ class _SingleVoteState extends State<SingleVote> {
       setState(() {
         _voteOptions = result[1].map((map) => VoteOption.fromMap(map)).toList();
       });
-      print('--- voteOptions-----------------');
-
+      print('voteOptions-----------------');
+      // print(_voteOptions);
+      // List<int> optionIDs = [];
       for (int i = 0; i < _voteOptions.length; i++) {
         // optionIDs.add(_voteOptions[i].oID);
         final result2 = await APIservice.addVoteResult(content: {
@@ -61,6 +62,7 @@ class _SingleVoteState extends State<SingleVote> {
           'status': 0,
         });
       }
+      // print(optionIDs);
     } else {
       print('$result 在 server 抓取投票選項失敗');
     }
@@ -147,51 +149,46 @@ class _SingleVoteState extends State<SingleVote> {
                 shrinkWrap: true,
                 itemCount: _voteOptions.length,
                 itemBuilder: (context, index) {
-                  if (_voteOptions[index].votingOptionContent.isNotEmpty) {
-                    String dateRangeString =
-                        _voteOptions[index].votingOptionContent[0];
+                  String optionText =
+                      _voteOptions[index].votingOptionContent.join(", ");
+                  bool isDateRange =
+                      RegExp(r'\d{12} ~ \d{12}').hasMatch(optionText);
+                  IconData iconData = isDateRange
+                      ? Icons.date_range
+                      : Icons.help_outline; // 根據是否是日期範圍選擇圖標
 
-                    var StartTimeStr = dateRangeString.split('~')[0]; // 開始時間
-                    var EndTimeStr = dateRangeString.split('~')[1]; // 結束時間
+                  if (isDateRange) {
+                    DateTime startDate = parseDate(optionText.split(' ~ ')[0]);
+                    DateTime endDate = parseDate(optionText.split(' ~ ')[1]);
 
-                    final dateFormatter = DateFormat('E, d MMM yyyy HH:mm');
-                    final StartTimeString =
-                        dateFormatter.format(parseDate(StartTimeStr));
-                    final EndTimeString =
-                        dateFormatter.format(parseDate(EndTimeStr));
-
-                    String optionText = "$StartTimeString \n$EndTimeString";
-
-                    return Card(
-                      child: ListTile(
-                        leading:
-                            Icon(Icons.date_range, color: Colors.blue), // 添加圖標
-                        title: Text(
-                          optionText,
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-
-                        trailing: Radio(
-                          value: index,
-                          groupValue: selectedOptionIndex,
-                          onChanged: (int? value) {
-                            setState(() {
-                              selectedOptionIndex = value!;
-                            });
-                          },
-                        ),
-                      ),
-                    );
-                  } else {
-                    return ListTile(
-                      title: Text(
-                        "No Date Provided",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    );
+                    String formattedStartDate =
+                        DateFormat('yyyy-MM-dd HH:mm').format(startDate);
+                    String formattedEndDate =
+                        DateFormat('yyyy-MM-dd HH:mm').format(endDate);
+                    optionText = '$formattedStartDate ~ $formattedEndDate';
                   }
+
+                  print('optionText: $optionText'); // 顯示格式化後或原始的選項文本
+
+                  return Card(
+                    child: ListTile(
+                      leading: Icon(iconData, color: Colors.blue), // 使用選擇的圖標
+                      title: Text(
+                        optionText,
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      trailing: Radio(
+                        value: index,
+                        groupValue: selectedOptionIndex,
+                        onChanged: (int? value) {
+                          setState(() {
+                            selectedOptionIndex = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  );
                 },
               ),
               Padding(

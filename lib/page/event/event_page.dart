@@ -112,6 +112,7 @@ class _EventPageState extends State<EventPage> {
                   itemCount: yesMatchTime.length,
                   itemBuilder: (context, index) {
                     final event = yesMatchTime[index];
+
                     bool isMatchTimePassed = true;
                     bool isMultipleMatch = true;
                     if (event.state == 2) {
@@ -330,12 +331,23 @@ class _EventPageState extends State<EventPage> {
           .toList(); //將 queryCalendarTable 轉換成 Event 物件的 List，讓 SfCalendar 可以顯示
     });
     for (var event in Eventlist) {
-      if (now.isAfter(event.matchTime)) {
+      // 判斷 event.state 的值
+      if (event.state == 0) {
+        // 如果 event.state 等於 0，則將事件加入到媒合時間未到的列表
+        notMatchTime.add(event);
+      } else if (event.state != 0) {
+        // 如果 event.state 不等於 0，則將事件加入到媒合時間已到的列表
         yesMatchTime.add(event);
       } else {
-        notMatchTime.add(event);
+        // 其他情況可以根據需要進行處理，例如考慮時間判斷
+        if (now.isAfter(event.matchTime)) {
+          yesMatchTime.add(event);
+        } else {
+          notMatchTime.add(event);
+        }
       }
     }
+
     return queryCalendarTable;
   }
 
@@ -348,10 +360,14 @@ class _EventPageState extends State<EventPage> {
 
   Future<void> checkMatchTime() async {
     DateTime now = DateTime.now();
+
     for (var event in Eventlist) {
       print('-' * 20);
       // print('event.eventName: ${event.eventName}');
       // print('event.state: ${event.state}');
+      if (event.userMall != FirebaseEmail) {
+        return;
+      }
       if (event.state == 0) {
         //尚未媒合，才需要檢查，其他則不需要
 

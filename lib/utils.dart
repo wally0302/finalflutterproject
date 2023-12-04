@@ -9,6 +9,8 @@ class Utils {
   }
 
   static String toDate(DateTime dateTime) {
+    print('dateTime');
+    print(dateTime);
     final date = DateFormat.yMMMEd().format(dateTime);
     // ignore: unnecessary_string_interpolations
     return '$date';

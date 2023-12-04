@@ -102,48 +102,42 @@ class _VoteResultPageState extends State<VoteResultPage> {
                     shrinkWrap: true,
                     itemCount: _voteOptions.length,
                     itemBuilder: (context, index) {
-                      if (_voteOptions[index].votingOptionContent.isNotEmpty) {
-                        String dateRangeString =
-                            _voteOptions[index].votingOptionContent[0];
+                      String optionContent =
+                          _voteOptions[index].votingOptionContent.join(", ");
+                      bool isDateRange =
+                          RegExp(r'\d{12} ~ \d{12}').hasMatch(optionContent);
+                      IconData iconData =
+                          isDateRange ? Icons.date_range : Icons.help_outline;
 
-                        var StartTimeStr =
-                            dateRangeString.split('~')[0]; // 開始時間
-                        var EndTimeStr = dateRangeString.split('~')[1]; // 結束時間
-
-                        final dateFormatter = DateFormat('E, d MMM yyyy HH:mm');
-                        final StartTimeString =
-                            dateFormatter.format(parseDate(StartTimeStr));
-                        final EndTimeString =
-                            dateFormatter.format(parseDate(EndTimeStr));
-
-                        String optionText =
-                            "$StartTimeString \n$EndTimeString  ";
-
-                        return Card(
-                          child: ListTile(
-                            leading: Icon(Icons.date_range,
-                                color: Colors.blue), // 添加圖標
-                            title: Text(
-                              optionText,
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            subtitle:
-                                Text("票數: ${_oIDtoCount[index]}"), // 添加票數信息
-                          ),
-                        );
+                      String optionText;
+                      // 格式化日期範圍或直接使用原始文本
+                      if (isDateRange) {
+                        DateTime startDate =
+                            parseDate(optionContent.split(' ~ ')[0]);
+                        DateTime endDate =
+                            parseDate(optionContent.split(' ~ ')[1]);
+                        String formattedStartDate =
+                            DateFormat('yyyy-MM-dd HH:mm').format(startDate);
+                        String formattedEndDate =
+                            DateFormat('yyyy-MM-dd HH:mm').format(endDate);
+                        optionText = '$formattedStartDate ~ $formattedEndDate';
                       } else {
-                        return ListTile(
+                        optionText = optionContent;
+                      }
+
+                      return Card(
+                        child: ListTile(
+                          leading: Icon(iconData, color: Colors.blue),
                           title: Text(
-                            "No Date Provided",
+                            optionText + "：" + _oIDtoCount[index].toString(),
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
-                        );
-                      }
+                        ),
+                      );
                     },
                   ),
-                )
+                ),
               ],
             ),
           ],

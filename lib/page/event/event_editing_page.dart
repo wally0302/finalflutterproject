@@ -79,8 +79,15 @@ class _EventEditingPageState extends State<EventEditingPage> {
       final event = widget.event!;
       final eID = event.eID;
       titleController.text = event.eventName;
-      fromDate = event.eventBlockStartTime;
-      toDate = event.eventBlockEndTime;
+      if (event.state == 1) {
+        fromDate = event.eventFinalStartTime;
+        toDate = event.eventFinalEndTime;
+      } else {
+        fromDate = event.eventFinalStartTime;
+
+        toDate = event.eventFinalEndTime;
+      }
+
       matchTime = event.matchTime;
       eventTime = event.eventTime; //活動預計開始時間
       invitedFriends = event.friends as List<Friend>;
@@ -97,6 +104,9 @@ class _EventEditingPageState extends State<EventEditingPage> {
         remarkController.text = event.remark;
       }
       enableNotification = event.remindStatus;
+      print('--編輯活動--');
+      print(event.eventBlockStartTime);
+      print(event.eventBlockEndTime);
     }
   }
 
