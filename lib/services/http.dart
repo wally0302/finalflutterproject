@@ -765,4 +765,21 @@ class APIservice {
       return [false, response];
     }
   }
+
+  //投票
+  static Future<List<dynamic>> votematch({required int vID}) async {
+    String url = "http://163.22.17.145:3000/api/result/hightest/$vID";
+    final response = await http.post(
+      Uri.parse(url),
+      headers: <String, String>{'Content-Type': 'application/json'},
+      // body: jsonEncode(content),
+    );
+    if (response.statusCode == 200 || response.statusCode == 400) {
+      print('投票"媒合"時間成功');
+      return [true, response];
+    } else {
+      print(response);
+      return [false, response];
+    }
+  }
 }

@@ -51,6 +51,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    print(widget.event.eID);
     SocketService.setChatRoomId(
         widget.event.eID.toString()); // 使用 event 的 eid 作為聊天室ID
   }

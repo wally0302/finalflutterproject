@@ -237,9 +237,13 @@ class _EventPageState extends State<EventPage> {
                 ),
               );
             } else if (action == 'chat') {
-              SocketService.setUserName(FirebaseEmail!);
-              SocketService.setChatRoomId(event.eID.toString()); // 設定聊天室 ID
               SocketService.connectAndListen(event.eID.toString());
+
+              SocketService.setUserName(FirebaseEmail!);
+              SocketService.setChatRoomId(event.eID.toString());
+              print('event.eID:'); // 設定聊天室 ID
+              print(event.eID.toString()); // 設定聊天室 ID
+              print('-----------------');
               Navigator.push(
                 context,
                 MaterialPageRoute(

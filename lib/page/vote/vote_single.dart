@@ -49,9 +49,8 @@ class _SingleVoteState extends State<SingleVote> {
       setState(() {
         _voteOptions = result[1].map((map) => VoteOption.fromMap(map)).toList();
       });
-      print('voteOptions-----------------');
-      // print(_voteOptions);
-      // List<int> optionIDs = [];
+      print('--- voteOptions-----------------');
+
       for (int i = 0; i < _voteOptions.length; i++) {
         // optionIDs.add(_voteOptions[i].oID);
         final result2 = await APIservice.addVoteResult(content: {
@@ -61,7 +60,6 @@ class _SingleVoteState extends State<SingleVote> {
           'status': 0,
         });
       }
-      // print(optionIDs);
     } else {
       print('$result 在 server 抓取投票選項失敗');
     }
@@ -148,8 +146,20 @@ class _SingleVoteState extends State<SingleVote> {
                 shrinkWrap: true,
                 itemCount: _voteOptions.length,
                 itemBuilder: (context, index) {
-                  String optionText =
-                      _voteOptions[index].votingOptionContent.join(", ");
+                  String dateRangeString =
+                      _voteOptions[index].votingOptionContent[0];
+
+                  // 分割日期範圍為開始和結束日期
+                  List<String> dateRange = dateRangeString.split('~ ');
+                  print('dateRange');
+                  print(dateRange[0]);
+                  // 格式化兩個日期
+                  String formattedStart = formatDateTime(dateRange[0]);
+                  String formattedEnd = formatDateTime(dateRange[1]);
+
+                  // 將格式化後的日期組合成一個新的範圍字符串
+                  String optionText = "$formattedStart ~ $formattedEnd";
+                  print(optionText);
 
                   return RadioListTile(
                     title: Text(
@@ -247,5 +257,14 @@ class _SingleVoteState extends State<SingleVote> {
         ],
       ),
     );
+  }
+
+  String formatDateTime(String dateTime) {
+    String year = dateTime.substring(0, 4);
+    String month = dateTime.substring(4, 6);
+    String day = dateTime.substring(6, 8);
+    String time = dateTime.substring(8, 12);
+
+    return "$year/$month/$day/$time";
   }
 }

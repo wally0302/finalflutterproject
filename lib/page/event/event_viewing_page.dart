@@ -82,6 +82,10 @@ class EventViewingPage extends StatelessWidget {
               const SizedBox(
                 height: 24,
               ),
+              buildHome(event), //創建者
+              const SizedBox(
+                height: 24,
+              ),
               buildLocation(event), //地点
               const SizedBox(
                 height: 24,
@@ -152,6 +156,10 @@ class EventViewingPage extends StatelessWidget {
                 height: 24,
               ),
               SizedBox(
+                height: 24,
+              ),
+              buildHome(event), //創建者
+              const SizedBox(
                 height: 24,
               ),
               buildLocation(event), //地点
@@ -225,6 +233,10 @@ class EventViewingPage extends StatelessWidget {
                 height: 24,
               ),
               SizedBox(
+                height: 24,
+              ),
+              buildHome(event), //創建者
+              const SizedBox(
                 height: 24,
               ),
               buildLocation(event), //地点
@@ -413,6 +425,27 @@ class EventViewingPage extends StatelessWidget {
         ),
         Text(event.location.isNotEmpty ? event.location : '無',
             style: TextStyle(fontSize: 18))
+      ],
+    );
+  }
+
+  // 地點
+  Widget buildHome(Event event) {
+    return Row(
+      children: [
+        Icon(Icons.people_alt_outlined),
+        const SizedBox(
+          width: 3,
+        ),
+        Text(
+          '創建者：',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        Expanded(
+            // 使用 Expanded 包裹文本
+            child: Text(event.userMall!,
+                overflow: TextOverflow.ellipsis, // 添加溢出處理
+                style: TextStyle(fontSize: 18)))
       ],
     );
   }

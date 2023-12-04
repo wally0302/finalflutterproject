@@ -5,6 +5,7 @@ import 'package:create_event2/page/vote/vote_single.dart';
 import 'package:create_event2/provider/vote_provider.dart';
 import 'package:create_event2/page/vote/voteList.dart';
 import 'package:create_event2/services/http.dart';
+import 'package:cron/cron.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,7 @@ class _VotePageState extends State<VotePage> {
     super.initState();
     endTime = DateTime.now();
     getallVote();
+    // startVoteCronJob();
   }
 
   // 抓投票資料表的資料
@@ -63,7 +65,6 @@ class _VotePageState extends State<VotePage> {
       setState(() {
         // 將從數據庫中獲取的Map列表轉換為Vote對象列表
         _votes = result[1].map((map) => Vote.fromMap(map)).toList();
-        print('votes: $_votes');
       });
     } else {
       print('$result 在 server 抓取投票失敗');
@@ -73,7 +74,6 @@ class _VotePageState extends State<VotePage> {
   Future<void> _confirmDeleteDialog(
       BuildContext context, int index, Vote voteTest) async {
     // 11/20 更改--增加Vote voteTest
-    final voteProvider = Provider.of<VoteProvider>(context, listen: false);
 
     // 返回一个对话框
     return showDialog<void>(
@@ -285,5 +285,21 @@ class _VotePageState extends State<VotePage> {
         ],
       ),
     );
+  }
+
+  void startVoteCronJob() {
+    var cron = Cron();
+    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+      await checkVoteEndTime();
+    });
+  }
+
+  Future<void> checkVoteEndTime() async {
+    DateTime now = DateTime.now();
+    for (var vote in _votes) {
+      if (now.isAtSameMomentAs(vote.endTime) || now.isAfter(vote.endTime)) {
+        final result = await APIservice.votematch(vID: vote.vID);
+      }
+    }
   }
 }

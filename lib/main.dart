@@ -11,6 +11,7 @@ import 'package:create_event2/page/vote/vote_page.dart';
 import 'package:create_event2/provider/event_provider.dart';
 import 'package:create_event2/provider/journey_provider.dart';
 import 'package:create_event2/provider/vote_provider.dart';
+import 'package:create_event2/services/StreamSocket.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,8 +25,10 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart'; // new
 import 'package:go_router/go_router.dart'; // new
 import 'package:provider/provider.dart'; // new
 import 'app_state.dart'; // new
+import 'services/notification_servicer.dart';
 
 Future main() async {
+  await NotificationService().init();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
@@ -37,6 +40,11 @@ Future main() async {
         ChangeNotifierProvider(create: (context) => JourneyProvider()),
         ChangeNotifierProvider(create: (context) => EventProvider()),
         ChangeNotifierProvider(create: (context) => VoteProvider()),
+        // StreamProvider(
+        //     create: ((BuildContext context) {
+        //       return StreamSocket.getResponse;
+        //     }),
+        //     initialData: '')
       ],
       child: const MyApp(),
     ),

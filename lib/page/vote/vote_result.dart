@@ -99,21 +99,48 @@ class _VoteResultPageState extends State<VoteResultPage> {
                 Expanded(
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: _voteOptions.length, //
+                    itemCount: _voteOptions.length,
                     itemBuilder: (context, index) {
-                      // 投票選項的文字內容+票數
-                      String optionText =
-                          _voteOptions[index].votingOptionContent.join(", ") +
-                              "：" +
-                              _oIDtoCount[index].toString();
-                      print(optionText);
-                      return ListTile(
-                        title: Text(
-                          optionText,
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      );
+                      // 確保 _voteOptions[index].votingOptionContent 不為空
+                      if (_voteOptions[index].votingOptionContent.isNotEmpty) {
+                        // 提取並分割日期範圍
+                        String dateRangeString =
+                            _voteOptions[index].votingOptionContent[0];
+                        List<String> dateRange = dateRangeString.split('~ ');
+
+                        String formattedDateRange = '';
+                        if (dateRange.length == 2) {
+                          // 格式化日期
+                          String formattedStart = formatDateTime(dateRange[0]);
+                          String formattedEnd = formatDateTime(dateRange[1]);
+                          formattedDateRange =
+                              "$formattedStart ~ $formattedEnd";
+                        } else {
+                          formattedDateRange = "Invalid Date Range";
+                        }
+
+                        // 組合格式化的日期範圍和票數
+                        String optionText = "$formattedDateRange：" +
+                            _oIDtoCount[index].toString();
+
+                        print(optionText);
+
+                        return ListTile(
+                          title: Text(
+                            optionText,
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        );
+                      } else {
+                        return ListTile(
+                          title: Text(
+                            "No Date Provided",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        );
+                      }
                     },
                   ),
                 )
@@ -123,5 +150,14 @@ class _VoteResultPageState extends State<VoteResultPage> {
         ),
       );
     });
+  }
+
+  String formatDateTime(String dateTime) {
+    String year = dateTime.substring(0, 4);
+    String month = dateTime.substring(4, 6);
+    String day = dateTime.substring(6, 8);
+    String time = dateTime.substring(8, 12);
+
+    return "$year/$month/$day/$time";
   }
 }

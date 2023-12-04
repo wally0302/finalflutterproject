@@ -13,7 +13,7 @@ class SocketService {
   static late StreamController<List<String>> _userResponse;
   static late io.Socket _socket;
   static String _userName = '';
-  static String _chatRoomId = '265';
+  static String _chatRoomId = '';
 
   // static String? get userId => _socket.id;
 
@@ -33,7 +33,7 @@ class SocketService {
 // 傳訊息給server
   static void sendMessage(String eID, String message, Chat? replyMessage) {
     _socket.emit('message', {
-      "chatID": eID, //接收server 'eID': eid
+      "chatID": _chatRoomId, //接收server 'eID': eid
       "userMall": _userName,
       "messageContent": message,
       "messageSendTime": DateTime.now().toString(),
@@ -53,21 +53,29 @@ class SocketService {
   // }
 
   static void connectAndListen(String eID) {
+    // if (_socket != null && _socket.connected) {
+    //   _socket.disconnect();
+    // }
+    print('Connecting with eID: $eID');
+    print('--------------連接1');
+    print(_chatRoomId);
+    _chatRoomId = eID;
     //把這
     _socketResponse = StreamController<List<Chat>>();
     _userResponse = StreamController<List<String>>();
+
     _socket = io.io(
         serverUrl,
         io.OptionBuilder()
             .setTransports(['websocket']) // for Flutter or Dart VM
 
-            .setExtraHeaders({'foo': 'bar'})
-            .disableAutoConnect()
+            // .setExtraHeaders({'foo': 'bar'})
+            // .disableAutoConnect()
             .setQuery({
-              'userName': _userName,
-              'chatRoomId': eID,
-              'eID': eID,
-            }) //這個uid接收server  'eID': eid
+          'userName': _userName,
+          'chatRoomId': _chatRoomId,
+          'eID': _chatRoomId,
+        }) //這個uid接收server  'eID': eid
             .build());
 
     _socket.connect();
@@ -85,8 +93,8 @@ class SocketService {
       print(message[0]);
       _socketResponse.sink.add(message);
 
-      NotificationService().showNotificationAndroid(
-          '${message[0].userMall}', '${message[0].messageContent}');
+      // NotificationService().showNotificationAndroid(
+      //     '${message[0].userMall}', '${message[0].messageContent}');
     });
 
     //接收server傳來的媒合不須投票結果
@@ -166,7 +174,9 @@ class SocketService {
       _userResponse.sink.add(users);
     });
 
-    _socket.onDisconnect((_) => print('disconnect'));
+    _socket.onDisconnect((_) {
+      print('disconnect');
+    });
   }
 
   static void dispose() {
