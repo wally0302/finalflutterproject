@@ -1,0 +1,475 @@
+// 活動列表頁面
+
+import 'dart:convert';
+
+import 'package:cron/cron.dart';
+import 'package:flutter/material.dart';
+import 'package:create_event2/page/event/event_editing_page.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+
+import '../../bottom_bar.dart';
+import '../../model/event.dart';
+import '../../provider/event_provider.dart';
+import '../../services/socket_service.dart';
+import '../../services/sqlite.dart';
+import '../chat/chat_page.dart';
+import '../chat/chatlist.dart';
+import '../login_page.dart';
+import 'event_viewing_page.dart';
+import '../chat_room_page.dart'; // 引入聊天室頁面
+import '../../services/http.dart';
+
+class EventPage extends StatefulWidget {
+  @override
+  _EventPageState createState() => _EventPageState();
+}
+
+class _EventPageState extends State<EventPage> {
+  List<Event> Eventlist = [];
+  List<Event> notMatchTime = []; //媒合時間尚未到
+  List<Event> yesMatchTime = []; //媒合時間到了 -> 就要開始媒合
+  @override
+  void initState() {
+    super.initState();
+    getCalendarDateEvent();
+    startCronJob();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false, // 隱藏返回鍵
+          title: const Text('活動列表', style: TextStyle(color: Colors.black)),
+          centerTitle: true,
+          backgroundColor: Color(0xFF4A7DAB), // 修改 AppBar 的背景颜色
+          actions: [
+            IconButton(
+              icon: Icon(Icons.add, color: Colors.black),
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventEditingPage(
+                      addTodayDate: false,
+                      time: DateTime.now(),
+                      event: null,
+                    ),
+                  ),
+                );
+
+                if (result == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('活動已新增'),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/back.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  "媒合時間未到",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: notMatchTime.length,
+                  itemBuilder: (context, index) {
+                    final event = notMatchTime[index];
+                    return buildEventTile(event, context, false, false);
+                  },
+                ),
+              ),
+              Divider(
+                thickness: 5,
+                color: Colors.black,
+              ), // 加粗分隔线
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  "媒合時間已到",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: yesMatchTime.length,
+                  itemBuilder: (context, index) {
+                    final event = yesMatchTime[index];
+
+                    bool isMatchTimePassed = true;
+                    bool isMultipleMatch = true;
+                    if (event.state == 2) {
+                      isMultipleMatch = false;
+                    }
+                    return buildEventTile(
+                        event, context, isMatchTimePassed, isMultipleMatch);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+
+  Widget buildEventTile(Event event, BuildContext context,
+      bool isMatchTimePassed, bool isMultipleMatch) {
+    bool isHomeEvent = event.userMall == FirebaseEmail; // 判斷是否為房主創建的活動
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Container(
+        width: 340,
+        height: 75,
+        decoration: ShapeDecoration(
+          color: Color(0xFFCFE3F4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: ListTile(
+          leading: isHomeEvent //如果是房主創建的活動，則顯示房子圖示，否則顯示人圖示
+              ? Icon(Icons.home)
+              : Icon(Icons.group),
+          title: Text(
+            isMultipleMatch
+                ? '${DateFormat('MMdd').format(event.eventFinalStartTime)} ~ ${DateFormat('MMdd').format(event.eventFinalEndTime)} ${event.eventName}'
+                : event.eventName,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            event.location,
+            style: TextStyle(fontSize: 16),
+          ),
+          onTap: () async {
+            final action = await showDialog(
+              context: context,
+              builder: (BuildContext context) => Dialog(
+                insetPadding: EdgeInsets.all(0),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                child: Container(
+                  width: 240,
+                  height: 90,
+                  decoration: ShapeDecoration(
+                    color: Color(0xFF517B92),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pop('view');
+                        },
+                        child: Container(
+                          width: 120,
+                          height: 90,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset('assets/images/page.png',
+                                  width: 30, height: 30),
+                              Text(
+                                '詳細資訊',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontFamily: 'DFKai-SB',
+                                    fontWeight: FontWeight.w400),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pop('chat');
+                        },
+                        child: Container(
+                          width: 120,
+                          height: 90,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset('assets/images/message.png',
+                                  width: 30, height: 30),
+                              Text(
+                                '聊天室',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontFamily: 'DFKai-SB',
+                                    fontWeight: FontWeight.w400),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            if (action == 'view') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EventViewingPage(
+                    event: event,
+                    show: isMatchTimePassed,
+                  ),
+                ),
+              );
+            } else if (action == 'chat') {
+              SocketService.connectAndListen(FirebaseEmail!);
+              SocketService.setEID(event.eID.toString());
+              SocketService.setUserName(FirebaseEmail!);
+              SocketService.setChatRoomId(event.eID.toString());
+              print('event.eID:'); // 設定聊天室 ID
+              print(event.eID.toString()); // 設定聊天室 ID
+              print('-----------------');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatPage(
+                    event: event,
+                  ),
+                ),
+              );
+            }
+          },
+          trailing: IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () async {
+              final confirmDelete = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) => AlertDialog(
+                  title: Text('確認刪除'),
+                  content: Text('确定要刪除這個活動嗎？'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text('取消'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text('確定'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmDelete == true) {
+                var userMall = {'userMall': FirebaseEmail};
+                if (isHomeEvent) {
+                  // 如果是房主，調用 deleteHomeEvent API
+                  await APIservice.deleteHomeEvent(
+                      content: userMall, eID: event.eID.toString());
+                } else {
+                  // 如果不是房主，調用 deleteGuestEvent API
+                  await APIservice.deleteGuestEvent(
+                      content: userMall,
+                      eID: event.eID.toString(),
+                      userMall: FirebaseEmail!);
+                }
+
+                setState(() {
+                  Eventlist.remove(event);
+
+                  notMatchTime.remove(event);
+                  yesMatchTime.remove(event);
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('活動已刪除'),
+                  ),
+                );
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  //抓 該使用者 的 event 資料
+  getCalendarDateEvent() async {
+    // 從server抓使用者行事曆資料
+    var userMall = {'userMall': FirebaseEmail};
+    final resulthome = await APIservice.selectHomeEventAll(
+        content: userMall, userMall: FirebaseEmail!);
+    dynamic resultguestData = await APIservice.selectGuestEventAll(
+        content: userMall, guestMall: FirebaseEmail!);
+    List<dynamic> resultguest = resultguestData is List ? resultguestData : [];
+
+    await Sqlite.open; //開啟資料庫
+    List? queryCalendarTable =
+        await Sqlite.queryAll(tableName: 'event'); // 從 sqlite 拿資料
+    queryCalendarTable ??= []; // 如果沒有資料，就給一個空陣列
+    DateTime now = DateTime.now(); //現在時間
+
+    setState(() {
+      Eventlist = queryCalendarTable!
+          .map((e) => Event.fromMap(e))
+          .toList(); //將 queryCalendarTable 轉換成 Event 物件的 List，讓 SfCalendar 可以顯示
+    });
+    for (var event in Eventlist) {
+      // 判斷 event.state 的值
+      if (event.state == 0) {
+        // 如果 event.state 等於 0，則將事件加入到媒合時間未到的列表
+        notMatchTime.add(event);
+      } else if (event.state != 0) {
+        // 如果 event.state 不等於 0，則將事件加入到媒合時間已到的列表
+        yesMatchTime.add(event);
+      } else {
+        // 其他情況可以根據需要進行處理，例如考慮時間判斷
+        if (now.isAfter(event.matchTime)) {
+          yesMatchTime.add(event);
+        } else {
+          notMatchTime.add(event);
+        }
+      }
+    }
+
+    return queryCalendarTable;
+  }
+
+  void startCronJob() {
+    var cron = Cron();
+    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+      await checkMatchTime();
+      await updateNonOwnerEvents(); // 新增的函數調用
+    });
+  }
+
+  Future<void> checkMatchTime() async {
+    DateTime now = DateTime.now();
+
+    for (var event in Eventlist) {
+      print('-' * 20);
+      // print('event.eventName: ${event.eventName}');
+      // print('event.state: ${event.state}');
+      if (event.userMall != FirebaseEmail) {
+        return;
+      }
+      if (event.state == 0) {
+        //尚未媒合，才需要檢查，其他則不需要
+
+        if (now.isAtSameMomentAs(event.matchTime) ||
+            (now.isAfter(event.matchTime) && !yesMatchTime.contains(event))) {
+          print('${event.eventName} 的媒合時間已到達');
+          // 媒合時間到了，就要開始媒合，觸發 後端 API
+          final result = await APIservice.match(
+              content: event.toMap(), eID: event.eID.toString());
+
+          //server回傳的資料
+
+          http.Response response = result[1];
+          String responseBody = response.body;
+
+          var decoded = json.decode(responseBody);
+          // print('decoded: $decoded');//印出server回傳的資料decoded: {eID: 273, userMall: oaowally123@gmail.com, eventName: trsttt, eventBlockStartTime: 20231203, eventBlockEndTime: 20231203, eventTime: 1500, timeLengthHours: 1, eventFinalStartTime: 202312031500, eventFinalEndTime: 202312031600, state: 1, matchTime: 202312031149, friends: , location: , remindStatus: 0, remindTime: 202312031148, remark: }
+          //尚未媒合: event.state == 0
+          //媒合(單個):event.state == 1
+          //媒合(多個): event.state == 2
+          int state = decoded['state'];
+
+          if (state == 2) {
+            print('YA 多選');
+            event.state = 2;
+            setState(() {
+              yesMatchTime.add(event);
+              notMatchTime.remove(event);
+              Eventlist.remove(event);
+            });
+          } else if (state == 1) {
+            //媒合成功(單選)
+            print('YA 媒合成功');
+            //server回傳的資料
+            //媒合(單個):完整的event
+            //  decoded['eventFinalStartTime'] : 202109201800
+            //要轉換成 DateTime:2023-11-29 20:00:00.000
+            //才能存進去 event.eventFinalStartTime
+            int eventFinalStartTimeInt = decoded['eventFinalStartTime'];
+            var eventFinalStartTime = DateTime(
+                eventFinalStartTimeInt ~/ 100000000, // 年
+                (eventFinalStartTimeInt % 100000000) ~/ 1000000, // 月
+                (eventFinalStartTimeInt % 1000000) ~/ 10000, // 日
+                (eventFinalStartTimeInt % 10000) ~/ 100, // 小时
+                eventFinalStartTimeInt % 100 // 分钟
+                );
+
+            int eventFinalEndTimeInt = decoded['eventFinalEndTime'];
+            var eventFinalEndTime = DateTime(
+                eventFinalEndTimeInt ~/ 100000000, // 年
+                (eventFinalEndTimeInt % 100000000) ~/ 1000000, // 月
+                (eventFinalEndTimeInt % 1000000) ~/ 10000, // 日
+                (eventFinalEndTimeInt % 10000) ~/ 100, // 小时
+                eventFinalEndTimeInt % 100 // 分钟
+                );
+            try {
+              event.eventFinalStartTime = eventFinalStartTime;
+              event.eventFinalEndTime = eventFinalEndTime;
+              event.state = 1;
+            } catch (e) {
+              print('Error updating event times: $e');
+            }
+            setState(() {
+              yesMatchTime.add(event);
+              notMatchTime.remove(event);
+              Eventlist.remove(event);
+            });
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> updateNonOwnerEvents() async {
+    try {
+      var response = await APIservice.selectGuestEventAll(
+          content: {'userMall': FirebaseEmail}, guestMall: FirebaseEmail!);
+
+      if (response.isNotEmpty) {
+        List<Event> updatedEvents =
+            response.map((e) => Event.fromMap(e)).toList();
+
+        setState(() {
+          // 清空原有的非房主事件列表
+          notMatchTime.clear();
+          yesMatchTime.clear();
+
+          // 根據獲取的最新數據更新列表
+          for (var event in updatedEvents) {
+            if (event.state == 0) {
+              // 如果事件的媒合時間還未到達
+              notMatchTime.add(event);
+            } else {
+              // 如果事件的媒合時間已經到達
+              yesMatchTime.add(event);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      print('Error fetching non-owner events: $e');
+    }
+  }
+}

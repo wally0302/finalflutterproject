@@ -1,6 +1,7 @@
 import 'package:create_event2/page/login_page.dart';
 import 'package:create_event2/page/vote/vote_result.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../model/event.dart';
 import '../../model/vote.dart';
@@ -98,106 +99,140 @@ class _VoteCheckboxState extends State<VoteCheckbox> {
         backgroundColor: const Color(0xFF4A7DAB), // 這裡設置 AppBar 的顏色
         iconTheme: const IconThemeData(color: Colors.black), // 將返回箭头设为黑色
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              widget.vote.voteName,
-              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/back.png',
+              fit: BoxFit.cover,
             ),
           ),
-          ListView.builder(
-              shrinkWrap: true,
-              itemCount: _voteOptions.length,
-              itemBuilder: (context, index) {
-                String optionText =
-                    _voteOptions[index].votingOptionContent.join(", ");
-                return CheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.leading,
-                    title: Text(
-                      optionText,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    value: selectedOptionIndex[index],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        selectedOptionIndex[index] = value!;
-                      });
-                    });
-              }),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  primary: Color(0xFFCFE3F4), // 设置按钮的背景颜色
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30), // 设置按钮的圆角
-                  ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  widget.vote.voteName,
+                  style: const TextStyle(
+                      fontSize: 30, fontWeight: FontWeight.bold),
                 ),
-                child: const Text(
-                  '投票',
-                  style: TextStyle(
-                    color: Colors.black, // 设置文本颜色
-                    fontSize: 15, // 设置字体大小
-                    fontFamily: 'DFKai-SB', // 设置字体
-                    fontWeight: FontWeight.w600, // 设置字体粗细
-                  ),
-                ),
-                onPressed: () async {
-                  String tmpUserMail = FirebaseEmail!; //這裡要更改為根據使用者的userMall
-                  final tmpResult = await APIservice.seletallVoteResult(
-                      vID: widget.vote.vID, userMall: tmpUserMail);
-                  // 存儲更新後的投票結果內容
-                  List<Map<String, dynamic>> contents = [];
-                  // 遍歷所有投票選項
-                  for (int i = 0; i < _voteOptions.length; i++) {
-                    // 從投票結果中獲取當前選項的 oID
-                    int curremtOID = tmpResult[1][i]["oID"];
-                    // 檢查當前選項是否被選中
-                    bool isSelected = selectedOptionIndex[i];
-                    // 創建包含投票結果相關信息的 Map
-                    Map<String, dynamic> content = {
-                      'vID': widget.vote.vID,
-                      'oID': curremtOID,
-                      'userMall': tmpUserMail,
-                      'status': isSelected ? 1 : 0,
-                    };
-
-                    contents.add(content); // 添加到 contents 列表中
-
-                    print('Content $i: $content');
-                    // 遍歷 contents 列表，向伺服器更新每個投票結果
-                    for (int i = 0; i < contents.length; i++) {
-                      // 向伺服器發送更新投票結果的請求
-                      final result = await APIservice.updateResult(
-                          content: contents[i],
-                          voteResultID: tmpResult[1][i]["voteResultID"]);
-                      // 從投票結果中獲取當前選項的 oID
-                      int tmpOid = tmpResult[1][i]["oID"];
-                      if (result[0]) {
-                        print('更改$tmpOid結果成功');
-                      } else {
-                        print('更改$tmpOid結果失敗');
-                      }
-                    }
-                  }
-                  // 導航到投票結果頁面
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => VoteResultPage(
-                        voteName: widget.vote.voteName,
-                        vID: widget.vote.vID,
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: _voteOptions.length,
+                itemBuilder: (context, index) {
+                  String optionText =
+                      _voteOptions[index].votingOptionContent.join(", ");
+                  bool isDateRange =
+                      RegExp(r'\d{12} ~ \d{12}').hasMatch(optionText);
+                  IconData iconData =
+                      isDateRange ? Icons.date_range : Icons.help_outline;
+                  return Card(
+                    child: CheckboxListTile(
+                      controlAffinity:
+                          ListTileControlAffinity.trailing, // 将勾选框移到末端
+                      secondary: Icon(iconData, color: Colors.blue),
+                      title: Text(
+                        optionText,
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
+                      value: selectedOptionIndex[index],
+                      onChanged: (bool? value) {
+                        setState(() {
+                          selectedOptionIndex[index] = value!;
+                        });
+                      },
                     ),
                   );
-                }),
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Color(0xFFCFE3F4), // 设置按钮的背景颜色
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30), // 设置按钮的圆角
+                      ),
+                    ),
+                    child: const Text(
+                      '投票',
+                      style: TextStyle(
+                        color: Colors.black, // 设置文本颜色
+                        fontSize: 15, // 设置字体大小
+                        fontFamily: 'DFKai-SB', // 设置字体
+                        fontWeight: FontWeight.w600, // 设置字体粗细
+                      ),
+                    ),
+                    onPressed: () async {
+                      String tmpUserMail =
+                          FirebaseEmail!; //這裡要更改為根據使用者的userMall
+                      final tmpResult = await APIservice.seletallVoteResult(
+                          vID: widget.vote.vID, userMall: tmpUserMail);
+                      // 存儲更新後的投票結果內容
+                      List<Map<String, dynamic>> contents = [];
+                      // 遍歷所有投票選項
+                      for (int i = 0; i < _voteOptions.length; i++) {
+                        // 從投票結果中獲取當前選項的 oID
+                        int curremtOID = tmpResult[1][i]["oID"];
+                        // 檢查當前選項是否被選中
+                        bool isSelected = selectedOptionIndex[i];
+                        // 創建包含投票結果相關信息的 Map
+                        Map<String, dynamic> content = {
+                          'vID': widget.vote.vID,
+                          'oID': curremtOID,
+                          'userMall': tmpUserMail,
+                          'status': isSelected ? 1 : 0,
+                        };
+
+                        contents.add(content); // 添加到 contents 列表中
+
+                        print('Content $i: $content');
+                        // 遍歷 contents 列表，向伺服器更新每個投票結果
+                        for (int i = 0; i < contents.length; i++) {
+                          // 向伺服器發送更新投票結果的請求
+                          final result = await APIservice.updateResult(
+                              content: contents[i],
+                              voteResultID: tmpResult[1][i]["voteResultID"]);
+                          // 從投票結果中獲取當前選項的 oID
+                          int tmpOid = tmpResult[1][i]["oID"];
+                          if (result[0]) {
+                            print('更改$tmpOid結果成功');
+                          } else {
+                            print('更改$tmpOid結果失敗');
+                          }
+                        }
+                      }
+                      // 導航到投票結果頁面
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VoteResultPage(
+                            voteName: widget.vote.voteName,
+                            vID: widget.vote.vID,
+                          ),
+                        ),
+                      );
+                    }),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  DateTime parseDate(String dateStr) {
+    // 假設 dateStr 是 "202312040800~202312040900" 這樣的格式
+    var StartTimeInt = int.parse(dateStr);
+
+    return DateTime(
+        StartTimeInt ~/ 100000000, // 年
+        (StartTimeInt % 100000000) ~/ 1000000, // 月
+        (StartTimeInt % 1000000) ~/ 10000, // 日
+        (StartTimeInt % 10000) ~/ 100, // 小时
+        StartTimeInt % 100 // 分钟
+        );
   }
 }

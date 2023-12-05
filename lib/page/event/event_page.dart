@@ -10,7 +10,6 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 import '../../bottom_bar.dart';
-import '../../firebasechat/guest_book.dart';
 import '../../model/event.dart';
 import '../../provider/event_provider.dart';
 import '../../services/socket_service.dart';
